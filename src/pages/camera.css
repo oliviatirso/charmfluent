@@ -1,0 +1,398 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Raleway:wght@300;400;600;700;900&display=swap');
+
+@font-face {
+  font-family: 'UnifrakturMaguntia';
+  src: url('/assets/fonts/UnifrakturMaguntia-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  background: #060612;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* ── Footer override ── */
+#footer {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2.5px;
+}
+
+/* ── Back button ── */
+#back-btn {
+  position: fixed;
+  top: 24px; left: 28px;
+  z-index: 10;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: rgba(255, 110, 199, 0.8);
+  text-decoration: none;
+  letter-spacing: 2px;
+  transition: color 0.2s;
+}
+#back-btn:hover { color: #ff6ec7; }
+
+
+/* ── Camera Body ── */
+#camera {
+  position: relative;
+  width: 680px;
+  height: 430px;
+  background: linear-gradient(145deg,
+    #f0a0c8 0%,
+    #e8789e 20%,
+    #d45a8c 45%,
+    #c0406e 65%,
+    #d96090 80%,
+    #eaaac0 100%
+  );
+  border-radius: 28px 28px 24px 24px;
+  box-shadow:
+    0 0 0 2px rgba(255,255,255,0.25),
+    0 0 0 4px rgba(180,50,100,0.4),
+    0 12px 60px rgba(233,30,140,0.5),
+    0 4px 20px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.4),
+    inset 0 -2px 6px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  padding: 20px 24px;
+  gap: 20px;
+}
+
+/* metallic sheen overlay */
+#camera::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg,
+    rgba(255,255,255,0.18) 0%,
+    transparent 40%,
+    rgba(0,0,0,0.1) 100%
+  );
+  pointer-events: none;
+}
+
+/* top edge accent */
+#camera::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 12%; right: 12%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+  border-radius: 0 0 4px 4px;
+}
+
+/* ── Screen Panel ── */
+#screen-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Brand label above screen */
+#cam-brand {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  text-align: right;
+  padding-right: 4px;
+}
+
+/* Screen bezel */
+#screen-bezel {
+  background: #0a0a14;
+  border-radius: 6px;
+  padding: 6px;
+  box-shadow:
+    inset 0 2px 8px rgba(0,0,0,0.8),
+    0 0 0 1px rgba(0,0,0,0.5),
+    0 0 16px rgba(233,30,140,0.12);
+}
+
+/* Actual screen */
+#screen {
+  width: 430px;
+  height: 300px;
+  background: #080810;
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow 0.3s;
+}
+#screen:hover {
+  box-shadow: 0 0 20px rgba(255,110,199,0.3);
+}
+
+/* Photo displayed on screen */
+#screen-photo {
+  position: absolute;
+  inset: 0;
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+  display: none;
+}
+
+/* Upload prompt (shown when no photo) */
+#screen-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+}
+#screen-prompt .icon {
+  font-size: 36px;
+  opacity: 0.4;
+}
+#screen-prompt .label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 2px;
+  text-align: center;
+  line-height: 1.8;
+}
+
+/* Screen HUD (shown over photo) */
+#screen-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: none;
+}
+#hud-top {
+  position: absolute;
+  top: 8px; left: 10px; right: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+#hud-bottom {
+  position: absolute;
+  bottom: 8px; left: 10px; right: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.hud-text {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  color: rgba(255,255,255,0.75);
+  letter-spacing: 1px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+}
+#photo-counter {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: #ff6ec7;
+  text-shadow: 0 0 6px #e91e8c;
+}
+
+/* Corner brackets */
+#screen::before, #screen::after {
+  content: '';
+  position: absolute;
+  width: 16px; height: 16px;
+  pointer-events: none;
+  z-index: 2;
+}
+#screen::before {
+  top: 6px; left: 6px;
+  border-top: 2px solid rgba(255,110,199,0.4);
+  border-left: 2px solid rgba(255,110,199,0.4);
+}
+#screen::after {
+  bottom: 6px; right: 6px;
+  border-bottom: 2px solid rgba(255,110,199,0.4);
+  border-right: 2px solid rgba(255,110,199,0.4);
+}
+
+/* hidden file input */
+#file-input { display: none; }
+
+/* ── Right Controls Panel ── */
+#controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  min-width: 130px;
+}
+
+/* Play button (top) */
+.ctrl-play {
+  width: 36px; height: 36px;
+  background: linear-gradient(145deg, #c8c8d4, #9090a0);
+  border-radius: 50%;
+  border: none;
+  box-shadow:
+    0 2px 6px rgba(0,0,0,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  color: #fff;
+}
+.ctrl-play:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 12px rgba(255,110,199,0.5), 0 2px 6px rgba(0,0,0,0.4);
+}
+.ctrl-play:active { transform: scale(0.95); }
+
+/* ── D-Pad ── */
+#dpad {
+  position: relative;
+  width: 108px;
+  height: 108px;
+}
+
+/* Outer ring */
+#dpad-ring {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(145deg, #b8b8c8, #888898);
+  border-radius: 50%;
+  box-shadow:
+    0 3px 10px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(255,255,255,0.25);
+}
+
+/* D-pad arms */
+.dpad-btn {
+  position: absolute;
+  width: 34px; height: 34px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  color: rgba(255,255,255,0.7);
+  z-index: 2;
+  transition: color 0.1s;
+}
+.dpad-btn:hover { color: #ff6ec7; }
+.dpad-btn:active { transform: scale(0.92); }
+
+#dpad-up    { top: 2px;  left: 50%; transform: translateX(-50%); }
+#dpad-down  { bottom: 2px; left: 50%; transform: translateX(-50%); }
+#dpad-left  { left: 2px; top: 50%; transform: translateY(-50%); }
+#dpad-right { right: 2px; top: 50%; transform: translateY(-50%); }
+
+/* Center OK button */
+#dpad-ok {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 36px; height: 36px;
+  background: linear-gradient(145deg, #e91e8c, #c2185b);
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: #fff;
+  letter-spacing: 1px;
+  box-shadow:
+    0 0 10px rgba(233,30,140,0.5),
+    0 2px 6px rgba(0,0,0,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.2);
+  transition: box-shadow 0.2s, transform 0.1s;
+  z-index: 3;
+}
+#dpad-ok:hover {
+  box-shadow: 0 0 18px rgba(255,110,199,0.7), 0 2px 6px rgba(0,0,0,0.4);
+}
+#dpad-ok:active { transform: translate(-50%, -50%) scale(0.93); }
+
+/* ── Small icon buttons ── */
+#btn-row {
+  display: flex;
+  gap: 10px;
+}
+
+.icon-btn {
+  width: 30px; height: 30px;
+  background: linear-gradient(145deg, #c0c0cc, #888898);
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  color: rgba(255,255,255,0.8);
+  box-shadow:
+    0 2px 5px rgba(0,0,0,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.25);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.icon-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 10px rgba(255,110,199,0.4), 0 4px 8px rgba(0,0,0,0.4);
+}
+.icon-btn:active { transform: scale(0.93); }
+
+/* ── Status LED ── */
+#status-led {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #ff6ec7;
+  box-shadow: 0 0 6px #e91e8c, 0 0 12px #e91e8c;
+  animation: ledPulse 2s ease-in-out infinite;
+}
+@keyframes ledPulse {
+  0%, 100% { opacity: 0.6; box-shadow: 0 0 6px #e91e8c; }
+  50%       { opacity: 1;   box-shadow: 0 0 14px #ff6ec7, 0 0 20px #e91e8c; }
+}
+
+/* ── Slide-in nav arrows (over screen) ── */
+.screen-arrow {
+  position: absolute;
+  top: 50%; transform: translateY(-50%);
+  background: rgba(0,0,0,0.45);
+  border: none;
+  color: rgba(255,255,255,0.7);
+  font-size: 18px;
+  width: 32px; height: 56px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  transition: background 0.2s, color 0.2s;
+}
+.screen-arrow:hover { background: rgba(233,30,140,0.5); color: #fff; }
+#arrow-left  { left: 0;  border-radius: 0 6px 6px 0; }
+#arrow-right { right: 0; border-radius: 6px 0 0 6px; }
+
+/* ── Hint text ── */
+#cam-hint {
+  position: fixed;
+  bottom: 52px; left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: rgba(255,255,255,0.2);
+  letter-spacing: 2px;
+  animation: hintPulse 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes hintPulse {
+  0%, 100% { opacity: 0.2; }
+  50%       { opacity: 0.5; }
+}

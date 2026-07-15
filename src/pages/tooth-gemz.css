@@ -1,0 +1,169 @@
+body {
+  background: #060612;
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#tg-content, #tg-sub, #back-btn, #footer, #vignette {
+  position: relative;
+  z-index: 2;
+}
+
+#back-btn {
+  position: fixed;
+  top: 24px;
+  left: 28px;
+  z-index: 10;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: rgba(255, 110, 199, 0.8);
+  text-decoration: none;
+  letter-spacing: 2px;
+  transition: color 0.2s;
+}
+#back-btn:hover { color: #ff6ec7; }
+
+#tg-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 40px 24px;
+  max-width: 960px;
+  width: 100%;
+}
+
+#tg-sub {
+  position: fixed;
+  top: 175px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  font-family: 'Pirata One', cursive;
+  font-size: 24px;
+  color: #fff;
+  letter-spacing: 1.5px;
+  line-height: 1.8;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ── Grid ── */
+#tg-grid {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 32px;
+}
+
+/* ── Retro Window Card ── */
+.tg-card {
+  width: 260px;
+  background: #fce8f0;
+  border: 2px dashed #e91e8c;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(233, 30, 140, 0.15);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.tg-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 0 48px rgba(233, 30, 140, 0.35);
+}
+
+/* Title bar */
+.tg-card-titlebar {
+  background: #e91e8c;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.tg-card-controls {
+  display: flex;
+  gap: 5px;
+}
+
+.ctrl-btn {
+  width: 18px;
+  height: 18px;
+  background: #f48fb1;
+  border: 1px solid #c2185b;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  color: #c2185b;
+  font-family: sans-serif;
+  font-weight: bold;
+  cursor: default;
+}
+
+/* Card body */
+.tg-card-body {
+  padding: 24px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.tg-card-name {
+  font-family: 'Raleway', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a0a10;
+  letter-spacing: 0.5px;
+}
+
+.tg-card-price {
+  font-family: 'Raleway', sans-serif;
+  font-size: 64px;
+  font-weight: 900;
+  color: #1a0a10;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.tg-card-price sup {
+  font-size: 28px;
+  font-weight: 700;
+  vertical-align: super;
+  line-height: 0;
+}
+
+.tg-card-book {
+  display: block;
+  width: 100%;
+  padding: 10px 0;
+  background: #f48fb1;
+  border: 1px solid #e91e8c;
+  border-radius: 20px;
+  text-align: center;
+  font-family: 'Raleway', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a0a10;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.tg-card-book:hover {
+  background: #e91e8c;
+  color: #fff;
+}
+
+/* ── Disclaimer ── */
+#tg-disclaimer {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  text-align: center;
+}

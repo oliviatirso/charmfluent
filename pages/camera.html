@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gallery – Charmfluent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Raleway:wght@300;400;500;600;700&family=Press+Start+2P&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="stylesheet" href="/src/pages/camera.css">
+</head>
+<body>
+
+  <div id="vignette"></div>
+
+  <a href="/" id="back-btn">← Back</a>
+
+  <!-- Title replaced by Three.js 3D text -->
+
+  <!-- Camera body -->
+  <div id="camera">
+
+    <!-- Left: screen panel -->
+    <div id="screen-panel">
+      <div id="cam-brand">Charmfluent ★ Digital</div>
+
+      <div id="screen-bezel">
+        <div id="screen">
+          <img id="screen-photo" alt="photo">
+
+          <button class="screen-arrow" id="arrow-left">&#8249;</button>
+          <button class="screen-arrow" id="arrow-right">&#8250;</button>
+
+          <!-- Upload prompt -->
+          <div id="screen-prompt">
+            <div class="icon">📷</div>
+            <div class="label">Click to load photos<br>or press OK</div>
+          </div>
+
+          <!-- HUD overlay -->
+          <div id="screen-hud">
+            <div id="hud-top">
+              <span class="hud-text">▶ PLAY</span>
+              <span class="hud-text">★ CF</span>
+            </div>
+            <div id="hud-bottom">
+              <span class="hud-text">← → navigate</span>
+              <span id="photo-counter" class="hud-text">1 / 1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <input type="file" id="file-input" accept="image/*" multiple>
+    </div>
+
+    <!-- Right: controls -->
+    <div id="controls">
+
+      <button class="ctrl-play" id="btn-play" title="Slideshow">▶</button>
+
+      <!-- D-pad -->
+      <div id="dpad">
+        <div id="dpad-ring"></div>
+        <button class="dpad-btn" id="dpad-up">▲</button>
+        <button class="dpad-btn" id="dpad-down">▼</button>
+        <button class="dpad-btn" id="dpad-left">◀</button>
+        <button class="dpad-btn" id="dpad-right">▶</button>
+        <button id="dpad-ok">OK</button>
+      </div>
+
+
+      <div id="status-led"></div>
+    </div>
+
+  </div>
+
+
+
+  <footer id="footer">© Charmfluent Studios. All Rights Reserved.</footer>
+
+  <script type="module" src="/src/pages/camera.js"></script>
+</body>
+</html>
