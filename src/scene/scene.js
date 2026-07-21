@@ -168,9 +168,9 @@ export function initScene() {
     textGroup.add(subMesh);
 
     // ── Tooth Gemz Label ──
-    const toothLabelGeo = new TextGeometry('Tooth Gemz', {
+    const toothLabelGeo = new TextGeometry('BooK Here', {
       font,
-      size: 0.13,
+      size: 0.15,
       depth: 0.02,
       curveSegments: 8,
       bevelEnabled: true,
@@ -182,90 +182,104 @@ export function initScene() {
     toothLabelGeo.computeBoundingBox();
     const labelWidth = toothLabelGeo.boundingBox.max.x - toothLabelGeo.boundingBox.min.x;
     const toothLabelMesh = new THREE.Mesh(toothLabelGeo, subChromeMaterial);
-    toothLabelMesh.position.set(-0.52 - labelWidth / 2, 1.32, 0.14);
+    toothLabelMesh.position.set(-1.2 - labelWidth / 2, 1.25, 0.50);
     scene.add(toothLabelMesh);
+
+    // ── Instagram Label ──
+    const instaLabelGeo = new TextGeometry('Instagram', {
+      font,
+      size: 0.15,
+      depth: 0.02,
+      curveSegments: 8,
+      bevelEnabled: true,
+      bevelThickness: 0.006,
+      bevelSize: 0.004,
+      bevelSegments: 3,
+    });
+    instaLabelGeo.computeBoundingBox();
+    const instaLabelWidth = instaLabelGeo.boundingBox.max.x - instaLabelGeo.boundingBox.min.x;
+    const instaLabelMesh = new THREE.Mesh(instaLabelGeo, subChromeMaterial);
+    instaLabelMesh.position.set(0 - instaLabelWidth / 2, 1.25, 0.50);
+    scene.add(instaLabelMesh);
+
+    // ── TikTok Label ──
+    const tiktokLabelGeo = new TextGeometry('TiKToK', {
+      font,
+      size: 0.15,
+      depth: 0.02,
+      curveSegments: 8,
+      bevelEnabled: true,
+      bevelThickness: 0.006,
+      bevelSize: 0.004,
+      bevelSegments: 3,
+    });
+    tiktokLabelGeo.computeBoundingBox();
+    const tiktokLabelWidth = tiktokLabelGeo.boundingBox.max.x - tiktokLabelGeo.boundingBox.min.x;
+    const tiktokLabelMesh = new THREE.Mesh(tiktokLabelGeo, subChromeMaterial);
+    tiktokLabelMesh.position.set(1.2 - tiktokLabelWidth / 2, 1.25, 0.50);
+    scene.add(tiktokLabelMesh);
 
   });
 
   // ── Molar Tooth Model ──
   let toothModel = null;
+  let toothMaxDim = null;
   const gltfLoader = new GLTFLoader();
   gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
     toothModel = gltf.scene;
+    // Measure raw size at scale=1, then apply 0.22 scale
+    const rawBox = new THREE.Box3().setFromObject(toothModel);
+    const rawSize = rawBox.getSize(new THREE.Vector3());
+    toothMaxDim = Math.max(rawSize.x, rawSize.y, rawSize.z) * 0.22;
     toothModel.scale.set(0.22, 0.22, 0.22);
-    toothModel.position.set(-0.52, 1.88, 0.14);
+    toothModel.position.set(-1.2, 1.78, 0.50);
     scene.add(toothModel);
+    if (instaModel) matchInstaScale();
+    if (tiktokModel && tiktokRawMaxDim !== null) matchTiktokScale();
   });
 
-
-  // ── Chroma Key Video ──
-  const video = document.createElement('video');
-  video.src = '/assets/videos/FINALvideo.mp4';
-  video.loop = true;
-  video.muted = true;
-  video.playsInline = true;
-  video.crossOrigin = 'anonymous';
-  video.play();
-
-  const videoTexture = new THREE.VideoTexture(video);
-  videoTexture.minFilter = THREE.LinearFilter;
-  videoTexture.magFilter = THREE.LinearFilter;
-  videoTexture.format = THREE.RGBAFormat;
-
-  const chromaKeyMaterial = new THREE.ShaderMaterial({
-    uniforms: {
-      map:        { value: videoTexture },
-      keyColor:   { value: new THREE.Color(0x00ff00) },
-      similarity: { value: 0.30 },
-      smoothness: { value: 0.08 },
-      spill:      { value: 0.15 },
-    },
-    vertexShader: `
-      varying vec2 vUv;
-      void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `
-      uniform sampler2D map;
-      uniform vec3 keyColor;
-      uniform float similarity;
-      uniform float smoothness;
-      uniform float spill;
-      varying vec2 vUv;
-
-      void main() {
-        vec4 tex = texture2D(map, vUv);
-
-        float Y   = 0.2989 * tex.r + 0.5866 * tex.g + 0.1145 * tex.b;
-        float Cr  = 0.7132 * (tex.r - Y);
-        float Cb  = 0.5647 * (tex.b - Y);
-
-        float keyY  = 0.2989 * keyColor.r + 0.5866 * keyColor.g + 0.1145 * keyColor.b;
-        float keyCr = 0.7132 * (keyColor.r - keyY);
-        float keyCb = 0.5647 * (keyColor.b - keyY);
-
-        float dist  = distance(vec2(Cr, Cb), vec2(keyCr, keyCb));
-        float alpha = smoothstep(similarity, similarity + smoothness, dist);
-
-        vec3 color = tex.rgb;
-        float spillAmount = smoothstep(similarity + smoothness, similarity, dist) * spill;
-        color.g -= spillAmount * 0.5;
-
-        gl_FragColor = vec4(color, alpha);
-      }
-    `,
-    transparent: true,
-    side: THREE.DoubleSide,
+  // ── Instagram Model ──
+  let instaModel = null;
+  function matchInstaScale() {
+    const rawBox = new THREE.Box3().setFromObject(instaModel);
+    rawBox.expandByObject(instaModel);
+    const rawSize = rawBox.getSize(new THREE.Vector3());
+    const maxRaw = Math.max(rawSize.x, rawSize.y, rawSize.z) || 1;
+    const s = (toothMaxDim / maxRaw) * 0.85;
+    instaModel.scale.set(s, s, s);
+  }
+  gltfLoader.load('/assets/models/instagram.glb', (gltf) => {
+    instaModel = new THREE.Group();
+    const instaScene = gltf.scene;
+    // Center the model so it spins around its own center
+    const centerBox = new THREE.Box3().setFromObject(instaScene);
+    const center = centerBox.getCenter(new THREE.Vector3());
+    instaScene.position.sub(center);
+    instaModel.add(instaScene);
+    instaModel.position.set(0, 1.78, 0.50);
+    scene.add(instaModel);
+    if (toothMaxDim !== null) matchInstaScale();
   });
 
-  const videoPlane = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.8, 3.2),
-    chromaKeyMaterial
-  );
-  videoPlane.position.set(0, 0.35, 0.5);
-  scene.add(videoPlane);
+  // ── TikTok Model ──
+  let tiktokModel = null;
+  let tiktokRawMaxDim = null;
+  function matchTiktokScale() {
+    const s = toothMaxDim / tiktokRawMaxDim;
+    tiktokModel.scale.set(s, s, s);
+  }
+  gltfLoader.load('/assets/models/tiktok_logo.glb', (gltf) => {
+    tiktokModel = new THREE.Group();
+    const tiktokScene = gltf.scene;
+    const centerBox = new THREE.Box3().setFromObject(tiktokScene);
+    const center = centerBox.getCenter(new THREE.Vector3());
+    tiktokScene.position.sub(center);
+    tiktokRawMaxDim = Math.max(...centerBox.getSize(new THREE.Vector3()).toArray()) || 1;
+    tiktokModel.add(tiktokScene);
+    tiktokModel.position.set(1.2, 1.78, 0.50);
+    scene.add(tiktokModel);
+    if (toothMaxDim !== null) matchTiktokScale();
+  });
 
   // ── Mouse tracking ──
   const mouse = new THREE.Vector2(-10, -10);
@@ -277,10 +291,15 @@ export function initScene() {
   // ── Click detection ──
   const raycaster = new THREE.Raycaster();
   renderer.domElement.addEventListener('click', () => {
-    if (!toothModel) return;
     raycaster.setFromCamera(mouse, camera);
-    const hits = raycaster.intersectObject(toothModel, true);
-    if (hits.length > 0) window.location.href = '/pages/tooth-gemz.html';
+    if (toothModel) {
+      const hits = raycaster.intersectObject(toothModel, true);
+      if (hits.length > 0) { window.open('https://venue.ink/@charmfluent', '_blank'); return; }
+    }
+    if (instaModel) {
+      const hits = raycaster.intersectObject(instaModel, true);
+      if (hits.length > 0) window.open('https://www.instagram.com/charmfluent', '_blank');
+    }
   });
 
   // ── Drag-to-spin ──
@@ -329,9 +348,8 @@ export function initScene() {
     pinkLight2.position.z = 1 + Math.cos(t * 0.55) * 2;
     whiteSpec.position.x  = Math.sin(t * 0.4) * 4;
 
-    // Text spin (drag or slow auto-rotate)
-    textGroup.rotation.y += (targetRotation - textGroup.rotation.y) * 0.05;
-    // Gentle auto-tilt for depth
+    // Constant spin
+    textGroup.rotation.y = t * 0.3;
     textGroup.rotation.x = Math.sin(t * 0.3) * 0.04;
 
     // ── CubeCamera update (the key to chrome reflections) ──
@@ -346,6 +364,8 @@ export function initScene() {
 
     // Tooth rotation
     if (toothModel) toothModel.rotation.y = t * 0.4;
+    if (instaModel) instaModel.rotation.y = t * 0.4;
+    if (tiktokModel) tiktokModel.rotation.y = t * 0.4;
 
     // Star animation
     starA.rotation.y =  t * 0.007;
