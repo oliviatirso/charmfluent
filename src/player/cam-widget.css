@@ -298,7 +298,7 @@
   transition: border-color .15s, transform .15s;
 }
 .cam-thumb:hover { transform: scale(1.05); }
-.cam-thumb.active { border-color: #ff72c4; box-shadow: 0 0 8px rgba(255,90,180,.5); }
+.cam-thumb.active { }
 .cam-thumb-add {
   width: 52px; height: 52px;
   border-radius: 3px;

@@ -6,7 +6,7 @@
   <title>Charmfluent</title>
   <link href="https://fonts.googleapis.com/css2?family=VT323&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/player/player.css">
-  <link rel="stylesheet" href="/src/player/cam-widget.css">
+
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #060612; overflow: hidden; }
@@ -92,108 +92,5 @@
 
   <script type="module" src="/src/player/player.js"></script>
 
-  <!-- Camera / Photo Widget (bottom-left) -->
-  <div id="cam-widget">
-    <div class="cam-wrap">
-
-      <div class="cam-sp" style="top:-14px;left:80px;--sd:3.6s;--sf:13px">✦</div>
-      <div class="cam-sp" style="top:-10px;right:90px;--sd:4.4s;--ss:1s;--sf:9px">✧</div>
-      <div class="cam-sp" style="bottom:-10px;left:160px;--sd:2.9s;--ss:.5s;--sf:11px">✦</div>
-
-      <!-- Camera body -->
-      <div class="cam-body">
-
-        <!-- Top strip -->
-        <div class="cam-top">
-          <div class="cam-viewfinder"></div>
-          <div class="cam-model">DSC-W130 &nbsp;Super SteadyShot</div>
-          <div class="cam-top-btns">
-            <button class="cam-top-btn" id="cam-bb" title="Add photos">+</button>
-            <button class="cam-top-btn" id="cam-hb" title="Grid view">⊞</button>
-          </div>
-        </div>
-
-        <!-- Main area -->
-        <div class="cam-main">
-
-          <!-- Screen -->
-          <div class="cam-screen-bezel">
-            <div class="cam-screen" id="cam-screen">
-              <!-- PHOTO VIEW -->
-              <div class="cam-view active" id="v-cp">
-                <canvas id="cam-canvas"></canvas>
-                <img id="cam-photo" alt="">
-                <div id="cam-upload-hint">
-                  <div class="cu-icon">📷</div>
-                  <div class="cu-lbl">CLICK TO ADD PHOTOS</div>
-                </div>
-                <!-- HUD -->
-                <div class="cam-hud" id="cam-hud">
-                  <div class="cam-hud-top">
-                    <span class="hud-t">▶ PLAY</span>
-                    <span class="hud-t" id="cam-count-label">1 / 1</span>
-                  </div>
-                  <div class="cam-hud-bot">
-                    <span class="hud-t" id="cam-photo-name"></span>
-                    <div class="cam-count-bar"><div class="cam-count-fill" id="cam-count-fill"></div></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- GRID VIEW -->
-              <div class="cam-view" id="v-cg">
-                <div class="cam-grid-inner">
-                  <div class="cam-grid-hdr">✦ GALLERY</div>
-                  <div class="cam-grid-scroll" id="cam-grid-scroll"></div>
-                </div>
-              </div>
-
-              <!-- scanlines + vignette -->
-              <div class="cam-scanlines"></div>
-              <div class="cam-vignette"></div>
-            </div>
-          </div>
-
-          <!-- Right controls -->
-          <div class="cam-controls">
-
-            <!-- MENU / HOME row -->
-            <div class="cam-menu-row">
-              <button class="cam-menu-btn" id="cam-hb2">MENU</button>
-              <button class="cam-menu-btn" id="cam-home-btn">HOME</button>
-            </div>
-
-            <!-- D-pad -->
-            <div class="cam-dpad">
-              <div class="cam-dpad-ring">
-                <button class="cdp cdp-t" id="cam-pb" title="Prev">▲</button>
-                <button class="cdp cdp-b" id="cam-nb" title="Next">▼</button>
-                <button class="cdp cdp-l" title="◀">◀</button>
-                <button class="cdp cdp-r" title="▶">▶</button>
-                <button class="cam-dpad-ok" id="cam-ppb">OK</button>
-              </div>
-            </div>
-
-            <!-- Bottom icon buttons -->
-            <div class="cam-icon-row">
-              <button class="cam-icon-btn" id="cam-play-btn">▶</button>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- Bottom strip -->
-        <div class="cam-bottom">
-          <span class="cam-brand">SONY</span>
-        </div>
-
-        <!-- Strap lug right -->
-        <div class="cam-strap-lug"></div>
-      </div>
-    </div>
-  </div>
-
-  <input type="file" id="cam-file" accept="image/*" multiple>
-  <script type="module" src="/src/player/cam-widget.js"></script>
 </body>
 </html>

@@ -3,7 +3,7 @@ import { TTFLoader } from 'three/examples/jsm/loaders/TTFLoader.js';
 import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { createStarfield } from './starfield.js';
+import { createStarfield, twinkleStars } from './starfield.js';
 import { setupLights } from './lights.js';
 
 export function initScene() {
@@ -59,8 +59,8 @@ export function initScene() {
 
   // "Tooth Gemz" label under the tooth
   const toothLabelSpot = new THREE.SpotLight(0xffd700, 3, 12, Math.PI / 6, 0.4, 1.5);
-  toothLabelSpot.position.set(-0.52, 4, 3);
-  toothLabelSpot.target.position.set(-0.52, 1.32, 0.14);
+  toothLabelSpot.position.set(-1.8, 4, 3);
+  toothLabelSpot.target.position.set(-1.8, 1.32, 0.14);
   scene.add(toothLabelSpot);
   scene.add(toothLabelSpot.target);
 
@@ -168,7 +168,7 @@ export function initScene() {
     textGroup.add(subMesh);
 
     // ── Tooth Gemz Label ──
-    const toothLabelGeo = new TextGeometry('BooK Here', {
+    const toothLabelGeo = new TextGeometry('Book here', {
       font,
       size: 0.15,
       depth: 0.02,
@@ -182,7 +182,7 @@ export function initScene() {
     toothLabelGeo.computeBoundingBox();
     const labelWidth = toothLabelGeo.boundingBox.max.x - toothLabelGeo.boundingBox.min.x;
     const toothLabelMesh = new THREE.Mesh(toothLabelGeo, subChromeMaterial);
-    toothLabelMesh.position.set(-1.2 - labelWidth / 2, 1.25, 0.50);
+    toothLabelMesh.position.set(-1.8 - labelWidth / 2, 1.25, 0.50);
     scene.add(toothLabelMesh);
 
     // ── Instagram Label ──
@@ -199,11 +199,11 @@ export function initScene() {
     instaLabelGeo.computeBoundingBox();
     const instaLabelWidth = instaLabelGeo.boundingBox.max.x - instaLabelGeo.boundingBox.min.x;
     const instaLabelMesh = new THREE.Mesh(instaLabelGeo, subChromeMaterial);
-    instaLabelMesh.position.set(0 - instaLabelWidth / 2, 1.25, 0.50);
+    instaLabelMesh.position.set(-0.6 - instaLabelWidth / 2, 1.25, 0.50);
     scene.add(instaLabelMesh);
 
     // ── TikTok Label ──
-    const tiktokLabelGeo = new TextGeometry('TiKToK', {
+    const tiktokLabelGeo = new TextGeometry('TikTok', {
       font,
       size: 0.15,
       depth: 0.02,
@@ -216,8 +216,25 @@ export function initScene() {
     tiktokLabelGeo.computeBoundingBox();
     const tiktokLabelWidth = tiktokLabelGeo.boundingBox.max.x - tiktokLabelGeo.boundingBox.min.x;
     const tiktokLabelMesh = new THREE.Mesh(tiktokLabelGeo, subChromeMaterial);
-    tiktokLabelMesh.position.set(1.2 - tiktokLabelWidth / 2, 1.25, 0.50);
+    tiktokLabelMesh.position.set(0.6 - tiktokLabelWidth / 2, 1.25, 0.50);
     scene.add(tiktokLabelMesh);
+
+    // ── Gallery Label ──
+    const galleryLabelGeo = new TextGeometry('Gallery', {
+      font,
+      size: 0.15,
+      depth: 0.02,
+      curveSegments: 8,
+      bevelEnabled: true,
+      bevelThickness: 0.006,
+      bevelSize: 0.004,
+      bevelSegments: 3,
+    });
+    galleryLabelGeo.computeBoundingBox();
+    const galleryLabelWidth = galleryLabelGeo.boundingBox.max.x - galleryLabelGeo.boundingBox.min.x;
+    const galleryLabelMesh = new THREE.Mesh(galleryLabelGeo, subChromeMaterial);
+    galleryLabelMesh.position.set(1.8 - galleryLabelWidth / 2, 1.25, 0.50);
+    scene.add(galleryLabelMesh);
 
   });
 
@@ -232,10 +249,11 @@ export function initScene() {
     const rawSize = rawBox.getSize(new THREE.Vector3());
     toothMaxDim = Math.max(rawSize.x, rawSize.y, rawSize.z) * 0.22;
     toothModel.scale.set(0.22, 0.22, 0.22);
-    toothModel.position.set(-1.2, 1.78, 0.50);
+    toothModel.position.set(-1.8, 1.78, 0.50);
     scene.add(toothModel);
     if (instaModel) matchInstaScale();
     if (tiktokModel && tiktokRawMaxDim !== null) matchTiktokScale();
+    if (polaroidModel && polaroidRawMaxDim !== null) matchPolaroidScale();
   });
 
   // ── Instagram Model ──
@@ -256,7 +274,7 @@ export function initScene() {
     const center = centerBox.getCenter(new THREE.Vector3());
     instaScene.position.sub(center);
     instaModel.add(instaScene);
-    instaModel.position.set(0, 1.78, 0.50);
+    instaModel.position.set(-0.6, 1.78, 0.50);
     scene.add(instaModel);
     if (toothMaxDim !== null) matchInstaScale();
   });
@@ -276,9 +294,29 @@ export function initScene() {
     tiktokScene.position.sub(center);
     tiktokRawMaxDim = Math.max(...centerBox.getSize(new THREE.Vector3()).toArray()) || 1;
     tiktokModel.add(tiktokScene);
-    tiktokModel.position.set(1.2, 1.78, 0.50);
+    tiktokModel.position.set(0.6, 1.78, 0.50);
     scene.add(tiktokModel);
     if (toothMaxDim !== null) matchTiktokScale();
+  });
+
+  // ── Polaroid Camera Model ──
+  let polaroidModel = null;
+  let polaroidRawMaxDim = null;
+  function matchPolaroidScale() {
+    const s = toothMaxDim / polaroidRawMaxDim;
+    polaroidModel.scale.set(s, s, s);
+  }
+  gltfLoader.load('/assets/models/polaroid_camera.glb', (gltf) => {
+    polaroidModel = new THREE.Group();
+    const polaroidScene = gltf.scene;
+    const centerBox = new THREE.Box3().setFromObject(polaroidScene);
+    const center = centerBox.getCenter(new THREE.Vector3());
+    polaroidScene.position.sub(center);
+    polaroidRawMaxDim = Math.max(...centerBox.getSize(new THREE.Vector3()).toArray()) || 1;
+    polaroidModel.add(polaroidScene);
+    polaroidModel.position.set(1.8, 1.78, 0.50);
+    scene.add(polaroidModel);
+    if (toothMaxDim !== null) matchPolaroidScale();
   });
 
   // ── Mouse tracking ──
@@ -298,7 +336,11 @@ export function initScene() {
     }
     if (instaModel) {
       const hits = raycaster.intersectObject(instaModel, true);
-      if (hits.length > 0) window.open('https://www.instagram.com/charmfluent', '_blank');
+      if (hits.length > 0) { window.open('https://www.instagram.com/charmfluent', '_blank'); return; }
+    }
+    if (polaroidModel) {
+      const hits = raycaster.intersectObject(polaroidModel, true);
+      if (hits.length > 0) { window.location.href = '/pages/camera.html'; return; }
     }
   });
 
@@ -366,6 +408,7 @@ export function initScene() {
     if (toothModel) toothModel.rotation.y = t * 0.4;
     if (instaModel) instaModel.rotation.y = t * 0.4;
     if (tiktokModel) tiktokModel.rotation.y = t * 0.4;
+    if (polaroidModel) polaroidModel.rotation.y = t * 0.4;
 
     // Star animation
     starA.rotation.y =  t * 0.007;
@@ -375,6 +418,11 @@ export function initScene() {
     starA.position.x += (mouse.x * 0.28 - starA.position.x) * 0.018;
     starA.position.y += (mouse.y * 0.18 - starA.position.y) * 0.018;
     starB.position.x += (mouse.x * 0.12 - starB.position.x) * 0.012;
+
+    // Per-star twinkle via vertex colors
+    twinkleStars(starA, t);
+    twinkleStars(starB, t);
+    twinkleStars(starC, t);
 
     renderer.render(scene, camera);
   })();
