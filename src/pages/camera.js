@@ -7,6 +7,8 @@ import { setupLights } from '../scene/lights.js';
 
 // ── Background Scene (starfield + 3D "Gallery" title) ──
 (function initScene() {
+  const isMobile = window.innerWidth < 768;
+
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -20,9 +22,9 @@ import { setupLights } from '../scene/lights.js';
   document.body.prepend(renderer.domElement);
 
   const scene  = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.1, 200);
+  const camera = new THREE.PerspectiveCamera(isMobile ? 68 : 52, window.innerWidth / window.innerHeight, 0.1, 200);
   camera.position.set(0, 1.6, 7.2);
-  camera.lookAt(0, 0.35, 0);
+  camera.lookAt(0, isMobile ? -0.9 : 0.35, 0);
 
   setupLights(scene);
 
@@ -58,9 +60,9 @@ import { setupLights } from '../scene/lights.js';
   scene.add(cubeCamera);
 
   const chromeMaterial = new THREE.MeshStandardMaterial({
-    color: new THREE.Color(0.8, 0.25, 0.42),
-    emissive: new THREE.Color(0.25, 0.04, 0.12),
-    emissiveIntensity: 0.5,
+    color: new THREE.Color(1.0, 0.55, 0.75),
+    emissive: new THREE.Color(0.4, 0.1, 0.25),
+    emissiveIntensity: 0.6,
     metalness: 0.96,
     roughness: 0.04,
     envMap: cubeRenderTarget.texture,
@@ -74,27 +76,32 @@ import { setupLights } from '../scene/lights.js';
     const font = new Font(json);
     const titleGeo = new TextGeometry('Gallery', {
       font,
-      size: 0.52,
-      depth: 0.11,
+      size: isMobile ? 0.36 : 0.52,
+      depth: isMobile ? 0.07 : 0.11,
       curveSegments: 12,
       bevelEnabled: true,
-      bevelThickness: 0.03,
-      bevelSize: 0.022,
+      bevelThickness: isMobile ? 0.02 : 0.03,
+      bevelSize: isMobile ? 0.014 : 0.022,
       bevelSegments: 8,
     });
     titleGeo.computeBoundingBox();
     const w = titleGeo.boundingBox.max.x - titleGeo.boundingBox.min.x;
     titleMesh = new THREE.Mesh(titleGeo, chromeMaterial);
-    titleMesh.position.set(-w / 2, 2.85, 0);
+    titleMesh.position.set(-w / 2, isMobile ? 2.7 : 2.85, 0);
     scene.add(titleMesh);
   });
 
-  // Mouse for star parallax
+  // Mouse / touch for star parallax
   const mouse = new THREE.Vector2(0, 0);
   window.addEventListener('mousemove', e => {
     mouse.x =  (e.clientX / window.innerWidth)  * 2 - 1;
     mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
   });
+  window.addEventListener('touchmove', e => {
+    const t = e.touches[0];
+    mouse.x =  (t.clientX / window.innerWidth)  * 2 - 1;
+    mouse.y = -(t.clientY / window.innerHeight) * 2 + 1;
+  }, { passive: true });
 
   const clock = new THREE.Clock();
   (function animate() {
@@ -206,3 +213,15 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft')  navigate(-1);
   if (e.key === 'ArrowRight') navigate(1);
 });
+
+// Touch swipe for mobile
+let swipeStartX = null;
+document.getElementById('photo-wrap').addEventListener('touchstart', e => {
+  swipeStartX = e.touches[0].clientX;
+}, { passive: true });
+document.getElementById('photo-wrap').addEventListener('touchend', e => {
+  if (swipeStartX === null) return;
+  const dx = e.changedTouches[0].clientX - swipeStartX;
+  if (Math.abs(dx) > 40) navigate(dx < 0 ? 1 : -1);
+  swipeStartX = null;
+}, { passive: true });

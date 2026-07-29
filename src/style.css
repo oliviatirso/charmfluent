@@ -105,3 +105,23 @@ canvas { display: block; }
   letter-spacing: 2px;
   animation: hintPulse 1.2s ease-in-out infinite;
 }
+
+/* ── Mobile ── */
+@media (max-width: 767px) {
+  #hint {
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    bottom: 60px;
+  }
+  #footer {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+  }
+  #loader-brand {
+    font-size: 11px;
+    letter-spacing: 3px;
+  }
+  #loader-bar {
+    width: 160px;
+  }
+}

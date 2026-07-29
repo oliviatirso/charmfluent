@@ -7,6 +7,8 @@ import { createStarfield, twinkleStars } from './starfield.js';
 import { setupLights } from './lights.js';
 
 export function initScene() {
+  const isMobile = window.innerWidth < 768;
+
   // ── Renderer ──
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -18,9 +20,12 @@ export function initScene() {
 
   // ── Scene + Camera ──
   const scene  = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.1, 200);
+  const camera = new THREE.PerspectiveCamera(
+    isMobile ? 68 : 52,
+    window.innerWidth / window.innerHeight, 0.1, 200
+  );
   camera.position.set(0, 1.6, 7.2);
-  camera.lookAt(0, 0.35, 0);
+  camera.lookAt(0, isMobile ? -0.9 : 0.35, 0);
 
   // ── Lights (call before CubeCamera so reflections pick them up) ──
   setupLights(scene);
@@ -59,8 +64,8 @@ export function initScene() {
 
   // "Tooth Gemz" label under the tooth
   const toothLabelSpot = new THREE.SpotLight(0xffd700, 3, 12, Math.PI / 6, 0.4, 1.5);
-  toothLabelSpot.position.set(-1.8, 4, 3);
-  toothLabelSpot.target.position.set(-1.8, 1.32, 0.14);
+  toothLabelSpot.position.set(-2.4, 4, 3);
+  toothLabelSpot.target.position.set(-2.4, 1.32, 0.14);
   scene.add(toothLabelSpot);
   scene.add(toothLabelSpot.target);
 
@@ -82,9 +87,9 @@ export function initScene() {
   // ── Chrome Pink Materials ──
   // Main chrome title material — deep rose chrome with white bevel highlights
   const chromeMaterial = new THREE.MeshStandardMaterial({
-    color: new THREE.Color(0.8, 0.25, 0.42),     // darker pink
-    emissive: new THREE.Color(0.25, 0.04, 0.12), // soft pink glow
-    emissiveIntensity: 0.5,
+    color: new THREE.Color(1.0, 0.55, 0.75),     // light pink
+    emissive: new THREE.Color(0.4, 0.1, 0.25),  // soft pink glow
+    emissiveIntensity: 0.6,
     metalness: 0.96,
     roughness: 0.04,
     envMap: cubeRenderTarget.texture,
@@ -93,7 +98,7 @@ export function initScene() {
 
   // Subtle sub-text material — lighter chrome, hot-pink tint
   const subChromeMaterial = new THREE.MeshStandardMaterial({
-    color: new THREE.Color(1.0, 0.35, 0.6),
+    color: new THREE.Color(1.0, 0.65, 0.82),
     metalness: 0.9,
     roughness: 0.1,
     envMap: cubeRenderTarget.texture,
@@ -126,15 +131,32 @@ export function initScene() {
   ttfLoader.load('/assets/fonts/UnifrakturMaguntia-Regular.ttf', (json) => {
     const font = new Font(json);
 
+    // ── Layout config ──
+    const titleSize  = isMobile ? 0.34 : 0.52;
+    const subSize    = isMobile ? 0.12 : 0.17;
+    const labelSize  = isMobile ? 0.11 : 0.15;
+    const labelDepth = isMobile ? 0.015 : 0.02;
+
+    // Desktop icon x positions (single row)
+    const deskX = [-2.4, -1.2, 0, 1.2, 2.4];
+    // Mobile icon x positions (row 1: tooth/insta/tiktok, row 2: polaroid/kitty)
+    const mobRow1X = [-1.2, 0, 1.2]; // tooth, insta, tiktok
+    const mobRow2X = [-0.6, 0.6];    // polaroid, kitty
+
+    const iconY1 = isMobile ? 1.9  : 1.78;  // row 1 (or only row on desktop)
+    const iconY2 = 0.75;                      // row 2 (mobile only)
+    const labelY1 = isMobile ? 1.5  : 1.25;
+    const labelY2 = 0.3;
+
     // ── Main Title: "Charmfluent" ──
     const titleGeo = new TextGeometry('Charmfluent', {
       font,
-      size: 0.52,
-      depth: 0.11,
-      curveSegments: 12,   // smooth curves on the ornate letterforms
+      size: titleSize,
+      depth: isMobile ? 0.07 : 0.11,
+      curveSegments: 12,
       bevelEnabled: true,
-      bevelThickness: 0.03,
-      bevelSize: 0.022,
+      bevelThickness: isMobile ? 0.02 : 0.03,
+      bevelSize: isMobile ? 0.015 : 0.022,
       bevelSegments: 8,
     });
 
@@ -143,19 +165,18 @@ export function initScene() {
     const centerOffset = -0.5 * titleWidth;
 
     textMesh = new THREE.Mesh(titleGeo, chromeMaterial);
-    textMesh.position.set(centerOffset, 2.85, 0);
+    textMesh.position.set(centerOffset, isMobile ? 2.7 : 2.85, 0);
     textGroup.add(textMesh);
-
 
     // ── Subtitle ──
     const subGeo = new TextGeometry('Custom Grillz & Tooth Charms', {
       font,
-      size: 0.17,
-      depth: 0.028,
+      size: subSize,
+      depth: isMobile ? 0.018 : 0.028,
       curveSegments: 8,
       bevelEnabled: true,
-      bevelThickness: 0.008,
-      bevelSize: 0.005,
+      bevelThickness: isMobile ? 0.005 : 0.008,
+      bevelSize: isMobile ? 0.003 : 0.005,
       bevelSegments: 3,
     });
 
@@ -164,77 +185,41 @@ export function initScene() {
     const subOffset = -0.5 * subWidth;
 
     subMesh = new THREE.Mesh(subGeo, subChromeMaterial);
-    subMesh.position.set(subOffset, 2.44, 0);
+    subMesh.position.set(subOffset, isMobile ? 2.38 : 2.44, 0);
     textGroup.add(subMesh);
 
-    // ── Tooth Gemz Label ──
-    const toothLabelGeo = new TextGeometry('Book here', {
-      font,
-      size: 0.15,
-      depth: 0.02,
-      curveSegments: 8,
-      bevelEnabled: true,
-      bevelThickness: 0.006,
-      bevelSize: 0.004,
-      bevelSegments: 3,
-    });
+    // Helper to make a label mesh
+    function makeLabel(text, xAnchor, yPos) {
+      const geo = new TextGeometry(text, {
+        font,
+        size: labelSize,
+        depth: labelDepth,
+        curveSegments: 8,
+        bevelEnabled: true,
+        bevelThickness: 0.006,
+        bevelSize: 0.004,
+        bevelSegments: 3,
+      });
+      geo.computeBoundingBox();
+      const w = geo.boundingBox.max.x - geo.boundingBox.min.x;
+      const mesh = new THREE.Mesh(geo, subChromeMaterial);
+      mesh.position.set(xAnchor - w / 2, yPos, 0.50);
+      scene.add(mesh);
+    }
 
-    toothLabelGeo.computeBoundingBox();
-    const labelWidth = toothLabelGeo.boundingBox.max.x - toothLabelGeo.boundingBox.min.x;
-    const toothLabelMesh = new THREE.Mesh(toothLabelGeo, subChromeMaterial);
-    toothLabelMesh.position.set(-1.8 - labelWidth / 2, 1.25, 0.50);
-    scene.add(toothLabelMesh);
-
-    // ── Instagram Label ──
-    const instaLabelGeo = new TextGeometry('Instagram', {
-      font,
-      size: 0.15,
-      depth: 0.02,
-      curveSegments: 8,
-      bevelEnabled: true,
-      bevelThickness: 0.006,
-      bevelSize: 0.004,
-      bevelSegments: 3,
-    });
-    instaLabelGeo.computeBoundingBox();
-    const instaLabelWidth = instaLabelGeo.boundingBox.max.x - instaLabelGeo.boundingBox.min.x;
-    const instaLabelMesh = new THREE.Mesh(instaLabelGeo, subChromeMaterial);
-    instaLabelMesh.position.set(-0.6 - instaLabelWidth / 2, 1.25, 0.50);
-    scene.add(instaLabelMesh);
-
-    // ── TikTok Label ──
-    const tiktokLabelGeo = new TextGeometry('TikTok', {
-      font,
-      size: 0.15,
-      depth: 0.02,
-      curveSegments: 8,
-      bevelEnabled: true,
-      bevelThickness: 0.006,
-      bevelSize: 0.004,
-      bevelSegments: 3,
-    });
-    tiktokLabelGeo.computeBoundingBox();
-    const tiktokLabelWidth = tiktokLabelGeo.boundingBox.max.x - tiktokLabelGeo.boundingBox.min.x;
-    const tiktokLabelMesh = new THREE.Mesh(tiktokLabelGeo, subChromeMaterial);
-    tiktokLabelMesh.position.set(0.6 - tiktokLabelWidth / 2, 1.25, 0.50);
-    scene.add(tiktokLabelMesh);
-
-    // ── Gallery Label ──
-    const galleryLabelGeo = new TextGeometry('Gallery', {
-      font,
-      size: 0.15,
-      depth: 0.02,
-      curveSegments: 8,
-      bevelEnabled: true,
-      bevelThickness: 0.006,
-      bevelSize: 0.004,
-      bevelSegments: 3,
-    });
-    galleryLabelGeo.computeBoundingBox();
-    const galleryLabelWidth = galleryLabelGeo.boundingBox.max.x - galleryLabelGeo.boundingBox.min.x;
-    const galleryLabelMesh = new THREE.Mesh(galleryLabelGeo, subChromeMaterial);
-    galleryLabelMesh.position.set(1.8 - galleryLabelWidth / 2, 1.25, 0.50);
-    scene.add(galleryLabelMesh);
+    if (isMobile) {
+      makeLabel('Book here', mobRow1X[0], labelY1);
+      makeLabel('Instagram', mobRow1X[1], labelY1);
+      makeLabel('TikTok',    mobRow1X[2], labelY1);
+      makeLabel('Gallery',   mobRow2X[0], labelY2);
+      makeLabel('About',     mobRow2X[1], labelY2);
+    } else {
+      makeLabel('Book here', deskX[0], labelY1);
+      makeLabel('Instagram', deskX[1], labelY1);
+      makeLabel('TikTok',    deskX[2], labelY1);
+      makeLabel('Gallery',   deskX[3], labelY1);
+      makeLabel('About',     deskX[4], labelY1);
+    }
 
   });
 
@@ -249,11 +234,12 @@ export function initScene() {
     const rawSize = rawBox.getSize(new THREE.Vector3());
     toothMaxDim = Math.max(rawSize.x, rawSize.y, rawSize.z) * 0.22;
     toothModel.scale.set(0.22, 0.22, 0.22);
-    toothModel.position.set(-1.8, 1.78, 0.50);
+    toothModel.position.set(isMobile ? -1.2 : -2.4, isMobile ? 1.9 : 1.78, 0.50);
     scene.add(toothModel);
     if (instaModel) matchInstaScale();
     if (tiktokModel && tiktokRawMaxDim !== null) matchTiktokScale();
     if (polaroidModel && polaroidRawMaxDim !== null) matchPolaroidScale();
+    if (kittyModel && kittyRawMaxDim !== null) matchKittyScale();
   });
 
   // ── Instagram Model ──
@@ -274,7 +260,7 @@ export function initScene() {
     const center = centerBox.getCenter(new THREE.Vector3());
     instaScene.position.sub(center);
     instaModel.add(instaScene);
-    instaModel.position.set(-0.6, 1.78, 0.50);
+    instaModel.position.set(isMobile ? 0 : -1.2, isMobile ? 1.9 : 1.78, 0.50);
     scene.add(instaModel);
     if (toothMaxDim !== null) matchInstaScale();
   });
@@ -294,7 +280,7 @@ export function initScene() {
     tiktokScene.position.sub(center);
     tiktokRawMaxDim = Math.max(...centerBox.getSize(new THREE.Vector3()).toArray()) || 1;
     tiktokModel.add(tiktokScene);
-    tiktokModel.position.set(0.6, 1.78, 0.50);
+    tiktokModel.position.set(isMobile ? 1.2 : 0, isMobile ? 1.9 : 1.78, 0.50);
     scene.add(tiktokModel);
     if (toothMaxDim !== null) matchTiktokScale();
   });
@@ -314,21 +300,55 @@ export function initScene() {
     polaroidScene.position.sub(center);
     polaroidRawMaxDim = Math.max(...centerBox.getSize(new THREE.Vector3()).toArray()) || 1;
     polaroidModel.add(polaroidScene);
-    polaroidModel.position.set(1.8, 1.78, 0.50);
+    polaroidModel.position.set(isMobile ? -0.6 : 1.2, isMobile ? 0.75 : 1.78, 0.50);
     scene.add(polaroidModel);
     if (toothMaxDim !== null) matchPolaroidScale();
   });
 
-  // ── Mouse tracking ──
+  // ── Kitty (About) Model ──
+  let kittyModel = null;
+  let kittyRawMaxDim = null;
+  function matchKittyScale() {
+    const s = toothMaxDim / kittyRawMaxDim;
+    kittyModel.scale.set(s, s, s);
+  }
+  gltfLoader.load('/assets/models/kitty.glb', (gltf) => {
+    kittyModel = new THREE.Group();
+    const kittyScene = gltf.scene;
+    const centerBox = new THREE.Box3().setFromObject(kittyScene);
+    const center = centerBox.getCenter(new THREE.Vector3());
+    kittyScene.position.sub(center);
+    kittyRawMaxDim = Math.max(...centerBox.getSize(new THREE.Vector3()).toArray()) || 1;
+    kittyModel.add(kittyScene);
+    kittyModel.position.set(isMobile ? 0.6 : 2.4, isMobile ? 0.75 : 1.78, 0.50);
+    scene.add(kittyModel);
+    if (toothMaxDim !== null) matchKittyScale();
+  });
+
+  // ── Mouse / Touch tracking ──
   const mouse = new THREE.Vector2(-10, -10);
   window.addEventListener('mousemove', (e) => {
     mouse.x =  (e.clientX / window.innerWidth)  * 2 - 1;
     mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
   });
+  window.addEventListener('touchmove', (e) => {
+    const t = e.touches[0];
+    mouse.x =  (t.clientX / window.innerWidth)  * 2 - 1;
+    mouse.y = -(t.clientY / window.innerHeight) * 2 + 1;
+  }, { passive: true });
 
-  // ── Click detection ──
+  // ── Click / Tap detection ──
   const raycaster = new THREE.Raycaster();
-  renderer.domElement.addEventListener('click', () => {
+
+  renderer.domElement.addEventListener('touchend', (e) => {
+    if (e.changedTouches.length === 0) return;
+    const t = e.changedTouches[0];
+    mouse.x =  (t.clientX / window.innerWidth)  * 2 - 1;
+    mouse.y = -(t.clientY / window.innerHeight) * 2 + 1;
+    fireRaycast();
+  });
+
+  function fireRaycast() {
     raycaster.setFromCamera(mouse, camera);
     if (toothModel) {
       const hits = raycaster.intersectObject(toothModel, true);
@@ -342,7 +362,13 @@ export function initScene() {
       const hits = raycaster.intersectObject(polaroidModel, true);
       if (hits.length > 0) { window.location.href = '/pages/camera.html'; return; }
     }
-  });
+    if (kittyModel) {
+      const hits = raycaster.intersectObject(kittyModel, true);
+      if (hits.length > 0) { window.location.href = '/pages/about.html'; return; }
+    }
+  }
+
+  renderer.domElement.addEventListener('click', fireRaycast);
 
   // ── Drag-to-spin ──
   let targetRotation = 0;
@@ -409,6 +435,7 @@ export function initScene() {
     if (instaModel) instaModel.rotation.y = t * 0.4;
     if (tiktokModel) tiktokModel.rotation.y = t * 0.4;
     if (polaroidModel) polaroidModel.rotation.y = t * 0.4;
+    if (kittyModel) kittyModel.rotation.y = t * 0.4;
 
     // Star animation
     starA.rotation.y =  t * 0.007;
