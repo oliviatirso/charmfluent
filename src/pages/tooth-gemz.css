@@ -167,3 +167,47 @@ body {
   color: rgba(255, 255, 255, 0.45);
   text-align: center;
 }
+
+/* ── Mobile ── */
+@media (max-width: 767px) {
+  body {
+    overflow-y: auto;
+    justify-content: flex-start;
+  }
+
+  #tg-sub {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    white-space: normal;
+    font-size: 16px;
+    line-height: 1.6;
+    padding: 0 20px;
+    margin-top: 130px;
+    margin-bottom: 8px;
+  }
+
+  #tg-content {
+    padding: 16px 16px 80px;
+  }
+
+  .tg-card {
+    width: min(280px, 90vw);
+  }
+
+  .tg-card-price {
+    font-size: 48px;
+  }
+
+  .tg-card-book {
+    padding: 14px 0;
+    font-size: 15px;
+  }
+
+  #back-btn {
+    font-size: 8px;
+    top: 16px;
+    left: 16px;
+  }
+}

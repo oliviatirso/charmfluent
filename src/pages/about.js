@@ -78,7 +78,7 @@ import { setupLights } from '../scene/lights.js';
     titleGeo.computeBoundingBox();
     const w = titleGeo.boundingBox.max.x - titleGeo.boundingBox.min.x;
     titleMesh = new THREE.Mesh(titleGeo, chromeMaterial);
-    titleMesh.position.set(-w / 2, isMobile ? 2.6 : 2.85, 0);
+    titleMesh.position.set(-w / 2, isMobile ? 2.8 : 2.85, 0);
     scene.add(titleMesh);
   });
 

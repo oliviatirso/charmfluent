@@ -76,7 +76,7 @@ export function initScene() {
   // This renders the scene into a cube texture so the text
   // reflects its surroundings in real time — that's what gives
   // the chrome/metallic mirror look.
-  const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(512, {
+  const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(isMobile ? 256 : 512, {
     format: THREE.RGBAFormat,
     generateMipmaps: true,
     minFilter: THREE.LinearMipmapLinearFilter,
@@ -145,8 +145,8 @@ export function initScene() {
 
     const iconY1 = isMobile ? 1.9  : 1.78;  // row 1 (or only row on desktop)
     const iconY2 = 0.75;                      // row 2 (mobile only)
-    const labelY1 = isMobile ? 1.5  : 1.25;
-    const labelY2 = 0.3;
+    const labelY1 = isMobile ? 1.35  : 1.25;
+    const labelY2 = isMobile ? 0.15 : 0.3;
 
     // ── Main Title: "Charmfluent" ──
     const titleGeo = new TextGeometry('Charmfluent', {
@@ -223,6 +223,24 @@ export function initScene() {
 
   });
 
+  // ── Reveal all models together once every one is loaded & scaled ──
+  let toothReady = false, instaReady = false, tiktokReady = false, polaroidReady = false, kittyReady = false;
+  let revealed = false;
+  function revealAll() {
+    if (revealed) return;
+    revealed = true;
+    if (toothModel)    toothModel.visible    = true;
+    if (instaModel)    instaModel.visible    = true;
+    if (tiktokModel)   tiktokModel.visible   = true;
+    if (polaroidModel) polaroidModel.visible = true;
+    if (kittyModel)    kittyModel.visible    = true;
+  }
+  function checkReveal() {
+    if (toothReady && instaReady && tiktokReady && polaroidReady && kittyReady) revealAll();
+  }
+  // Fallback: show whatever loaded after 8 seconds (handles slow/failed loads on mobile)
+  setTimeout(revealAll, 8000);
+
   // ── Molar Tooth Model ──
   let toothModel = null;
   let toothMaxDim = null;
@@ -235,11 +253,14 @@ export function initScene() {
     toothMaxDim = Math.max(rawSize.x, rawSize.y, rawSize.z) * 0.22;
     toothModel.scale.set(0.22, 0.22, 0.22);
     toothModel.position.set(isMobile ? -1.2 : -2.4, isMobile ? 1.9 : 1.78, 0.50);
+    toothModel.visible = false;
     scene.add(toothModel);
+    toothReady = true;
     if (instaModel) matchInstaScale();
     if (tiktokModel && tiktokRawMaxDim !== null) matchTiktokScale();
     if (polaroidModel && polaroidRawMaxDim !== null) matchPolaroidScale();
     if (kittyModel && kittyRawMaxDim !== null) matchKittyScale();
+    checkReveal();
   });
 
   // ── Instagram Model ──
@@ -251,6 +272,8 @@ export function initScene() {
     const maxRaw = Math.max(rawSize.x, rawSize.y, rawSize.z) || 1;
     const s = (toothMaxDim / maxRaw) * 0.85;
     instaModel.scale.set(s, s, s);
+    instaReady = true;
+    checkReveal();
   }
   gltfLoader.load('/assets/models/instagram.glb', (gltf) => {
     instaModel = new THREE.Group();
@@ -261,6 +284,7 @@ export function initScene() {
     instaScene.position.sub(center);
     instaModel.add(instaScene);
     instaModel.position.set(isMobile ? 0 : -1.2, isMobile ? 1.9 : 1.78, 0.50);
+    instaModel.visible = false;
     scene.add(instaModel);
     if (toothMaxDim !== null) matchInstaScale();
   });
@@ -271,6 +295,8 @@ export function initScene() {
   function matchTiktokScale() {
     const s = toothMaxDim / tiktokRawMaxDim;
     tiktokModel.scale.set(s, s, s);
+    tiktokReady = true;
+    checkReveal();
   }
   gltfLoader.load('/assets/models/tiktok_logo.glb', (gltf) => {
     tiktokModel = new THREE.Group();
@@ -281,6 +307,7 @@ export function initScene() {
     tiktokRawMaxDim = Math.max(...centerBox.getSize(new THREE.Vector3()).toArray()) || 1;
     tiktokModel.add(tiktokScene);
     tiktokModel.position.set(isMobile ? 1.2 : 0, isMobile ? 1.9 : 1.78, 0.50);
+    tiktokModel.visible = false;
     scene.add(tiktokModel);
     if (toothMaxDim !== null) matchTiktokScale();
   });
@@ -291,6 +318,8 @@ export function initScene() {
   function matchPolaroidScale() {
     const s = toothMaxDim / polaroidRawMaxDim;
     polaroidModel.scale.set(s, s, s);
+    polaroidReady = true;
+    checkReveal();
   }
   gltfLoader.load('/assets/models/polaroid_camera.glb', (gltf) => {
     polaroidModel = new THREE.Group();
@@ -301,6 +330,7 @@ export function initScene() {
     polaroidRawMaxDim = Math.max(...centerBox.getSize(new THREE.Vector3()).toArray()) || 1;
     polaroidModel.add(polaroidScene);
     polaroidModel.position.set(isMobile ? -0.6 : 1.2, isMobile ? 0.75 : 1.78, 0.50);
+    polaroidModel.visible = false;
     scene.add(polaroidModel);
     if (toothMaxDim !== null) matchPolaroidScale();
   });
@@ -311,6 +341,8 @@ export function initScene() {
   function matchKittyScale() {
     const s = toothMaxDim / kittyRawMaxDim;
     kittyModel.scale.set(s, s, s);
+    kittyReady = true;
+    checkReveal();
   }
   gltfLoader.load('/assets/models/kitty.glb', (gltf) => {
     kittyModel = new THREE.Group();
@@ -321,6 +353,7 @@ export function initScene() {
     kittyRawMaxDim = Math.max(...centerBox.getSize(new THREE.Vector3()).toArray()) || 1;
     kittyModel.add(kittyScene);
     kittyModel.position.set(isMobile ? 0.6 : 2.4, isMobile ? 0.75 : 1.78, 0.50);
+    kittyModel.visible = false;
     scene.add(kittyModel);
     if (toothMaxDim !== null) matchKittyScale();
   });
@@ -357,6 +390,10 @@ export function initScene() {
     if (instaModel) {
       const hits = raycaster.intersectObject(instaModel, true);
       if (hits.length > 0) { window.open('https://www.instagram.com/charmfluent', '_blank'); return; }
+    }
+    if (tiktokModel) {
+      const hits = raycaster.intersectObject(tiktokModel, true);
+      if (hits.length > 0) { window.open('https://www.tiktok.com/@charmfluent', '_blank'); return; }
     }
     if (polaroidModel) {
       const hits = raycaster.intersectObject(polaroidModel, true);
@@ -405,10 +442,12 @@ export function initScene() {
 
   // ── Animation Loop ──
   const clock = new THREE.Clock();
+  let frameCount = 0;
 
   (function animate() {
     requestAnimationFrame(animate);
     const t = clock.getElapsedTime();
+    frameCount++;
 
     // Animate lights for a dynamic chrome shimmer
     pinkLight1.position.x = Math.sin(t * 0.8) * 2.5;
@@ -416,19 +455,17 @@ export function initScene() {
     pinkLight2.position.z = 1 + Math.cos(t * 0.55) * 2;
     whiteSpec.position.x  = Math.sin(t * 0.4) * 4;
 
-    // Constant spin
-    textGroup.rotation.y = t * 0.3;
-    textGroup.rotation.x = Math.sin(t * 0.3) * 0.04;
-
     // ── CubeCamera update (the key to chrome reflections) ──
-    // Hide text meshes briefly so they don't reflect themselves
-    if (textMesh) textMesh.visible = false;
-    if (subMesh)  subMesh.visible  = false;
+    // On mobile, only update every 3rd frame to save GPU time
+    if (!isMobile || frameCount % 3 === 0) {
+      if (textMesh) textMesh.visible = false;
+      if (subMesh)  subMesh.visible  = false;
 
-    cubeCamera.update(renderer, scene);
+      cubeCamera.update(renderer, scene);
 
-    if (textMesh) textMesh.visible = true;
-    if (subMesh)  subMesh.visible  = true;
+      if (textMesh) textMesh.visible = true;
+      if (subMesh)  subMesh.visible  = true;
+    }
 
     // Tooth rotation
     if (toothModel) toothModel.rotation.y = t * 0.4;
