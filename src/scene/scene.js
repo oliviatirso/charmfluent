@@ -3,6 +3,7 @@ import { TTFLoader } from 'three/examples/jsm/loaders/TTFLoader.js';
 import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { createStarfield, twinkleStars } from './starfield.js';
 import { setupLights } from './lights.js';
 
@@ -64,13 +65,17 @@ export function initScene() {
 
   // "Tooth Gemz" label under the tooth
   const toothLabelSpot = new THREE.SpotLight(0xffd700, 3, 12, Math.PI / 6, 0.4, 1.5);
-  toothLabelSpot.position.set(-2.4, 4, 3);
-  toothLabelSpot.target.position.set(-2.4, 1.32, 0.14);
+  toothLabelSpot.position.set(-2.5, 4, 3);
+  toothLabelSpot.target.position.set(-2.5, 1.32, 0.14);
   scene.add(toothLabelSpot);
   scene.add(toothLabelSpot.target);
 
   // ── Starfield ──
   const { starA, starB, starC } = createStarfield(scene);
+
+  // ── Models group — rotate all icons together ──
+  const modelsGroup = new THREE.Group();
+  scene.add(modelsGroup);
 
   // ── CubeCamera for Chrome Reflections ──
   // This renders the scene into a cube texture so the text
@@ -132,21 +137,21 @@ export function initScene() {
     const font = new Font(json);
 
     // ── Layout config ──
-    const titleSize  = isMobile ? 0.34 : 0.52;
-    const subSize    = isMobile ? 0.12 : 0.17;
-    const labelSize  = isMobile ? 0.11 : 0.15;
-    const labelDepth = isMobile ? 0.015 : 0.02;
+    const titleSize  = isMobile ? 0.42 : 0.52;
+    const subSize    = isMobile ? 0.15 : 0.17;
+    const labelSize  = isMobile ? 0.14 : 0.15;
+    const labelDepth = isMobile ? 0.018 : 0.02;
 
-    // Desktop icon x positions (single row)
-    const deskX = [-2.4, -1.2, 0, 1.2, 2.4];
-    // Mobile icon x positions (row 1: tooth/insta/tiktok, row 2: polaroid/kitty)
+    // Desktop icon x positions (single row, 6 items centered with 1.0 spacing)
+    const deskX = [-2.5, -1.5, -0.5, 0.5, 1.5, 2.5];
+    // Mobile icon x positions (row 1: tooth/insta/tiktok, row 2: polaroid/kitty/dollar)
     const mobRow1X = [-1.2, 0, 1.2]; // tooth, insta, tiktok
-    const mobRow2X = [-0.6, 0.6];    // polaroid, kitty
+    const mobRow2X = [-1.2, 0, 1.2]; // polaroid, kitty, dollar
 
     const iconY1 = isMobile ? 1.9  : 1.78;  // row 1 (or only row on desktop)
     const iconY2 = 0.75;                      // row 2 (mobile only)
-    const labelY1 = isMobile ? 1.35  : 1.25;
-    const labelY2 = isMobile ? 0.15 : 0.3;
+    const labelY1 = isMobile ? FLOOR_Y - 0.38 : 1.2;
+    const labelY2 = isMobile ? FLOOR_Y_ROW2 - 0.38 : 0.1;
 
     // ── Main Title: "Charmfluent" ──
     const titleGeo = new TextGeometry('Charmfluent', {
@@ -213,30 +218,35 @@ export function initScene() {
       makeLabel('TikTok',    mobRow1X[2], labelY1);
       makeLabel('Gallery',   mobRow2X[0], labelY2);
       makeLabel('About',     mobRow2X[1], labelY2);
+      makeLabel('Prices',    mobRow2X[2], labelY2);
     } else {
       makeLabel('Book here', deskX[0], labelY1);
       makeLabel('Instagram', deskX[1], labelY1);
       makeLabel('TikTok',    deskX[2], labelY1);
       makeLabel('Gallery',   deskX[3], labelY1);
       makeLabel('About',     deskX[4], labelY1);
+      makeLabel('Prices',    deskX[5], labelY1);
     }
 
   });
 
   // ── Reveal all models together once every one is loaded & scaled ──
-  let toothReady = false, instaReady = false, tiktokReady = false, polaroidReady = false, kittyReady = false;
+  let toothReady = false, instaReady = false, tiktokReady = false, polaroidReady = false, kittyReady = false, dollarReady = false;
   let revealed = false;
+  let revealT  = 0;
   function revealAll() {
     if (revealed) return;
     revealed = true;
+    revealT = clock.getElapsedTime(); // all icons start spinning from 0 at this moment
     if (toothModel)    toothModel.visible    = true;
     if (instaModel)    instaModel.visible    = true;
     if (tiktokModel)   tiktokModel.visible   = true;
     if (polaroidModel) polaroidModel.visible = true;
     if (kittyModel)    kittyModel.visible    = true;
+    if (dollarModel)   dollarModel.visible   = true;
   }
   function checkReveal() {
-    if (toothReady && instaReady && tiktokReady && polaroidReady && kittyReady) revealAll();
+    if (toothReady && instaReady && tiktokReady && polaroidReady && kittyReady && dollarReady) revealAll();
   }
   // Fallback: show whatever loaded after 8 seconds (handles slow/failed loads on mobile)
   setTimeout(revealAll, 8000);
@@ -245,26 +255,37 @@ export function initScene() {
   let toothModel = null;
   let toothMaxDim = null;
   const gltfLoader = new GLTFLoader();
-  gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
+  gltfLoader.setMeshoptDecoder(MeshoptDecoder);
+  // Floor Y: the Y where all model bottoms will sit
+  const FLOOR_Y      = isMobile ? 1.2 : 1.5;    // row 1 (desktop uses this for all)
+  const FLOOR_Y_ROW2 = isMobile ? -0.2 : 0.45;   // mobile row 2 only
+
+gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
     toothModel = gltf.scene;
-    // Measure raw size at scale=1, then apply 0.22 scale
+    // Measure raw size at scale=1, then apply scale
+    const toothScale = isMobile ? 0.32 : 0.22;
     const rawBox = new THREE.Box3().setFromObject(toothModel);
     const rawSize = rawBox.getSize(new THREE.Vector3());
-    toothMaxDim = Math.max(rawSize.x, rawSize.y, rawSize.z) * 0.22;
-    toothModel.scale.set(0.22, 0.22, 0.22);
-    toothModel.position.set(isMobile ? -1.2 : -2.4, isMobile ? 1.9 : 1.78, 0.50);
+    toothMaxDim = Math.max(rawSize.x, rawSize.y, rawSize.z) * toothScale;
+    toothModel.rotation.set(0, 0, 0);
+    toothModel.scale.set(toothScale, toothScale, toothScale);
+    // Bottom-align: place so model bottom sits at FLOOR_Y
+    const toothBottomY = FLOOR_Y - rawBox.min.y * toothScale;
+    toothModel.position.set(isMobile ? -1.2 : -2.5, toothBottomY, 0.50);
     toothModel.visible = false;
-    scene.add(toothModel);
+    modelsGroup.add(toothModel);
     toothReady = true;
     if (instaModel) matchInstaScale();
     if (tiktokModel && tiktokRawMaxDim !== null) matchTiktokScale();
     if (polaroidModel && polaroidRawMaxDim !== null) matchPolaroidScale();
     if (kittyModel && kittyRawMaxDim !== null) matchKittyScale();
+    if (dollarModel && dollarRawMaxDim !== null) matchDollarScale();
     checkReveal();
   });
 
   // ── Instagram Model ──
   let instaModel = null;
+  let instaHalfH = 0;
   function matchInstaScale() {
     const rawBox = new THREE.Box3().setFromObject(instaModel);
     rawBox.expandByObject(instaModel);
@@ -272,90 +293,139 @@ export function initScene() {
     const maxRaw = Math.max(rawSize.x, rawSize.y, rawSize.z) || 1;
     const s = (toothMaxDim / maxRaw) * 0.85;
     instaModel.scale.set(s, s, s);
+    instaModel.position.y = FLOOR_Y + instaHalfH * s;
     instaReady = true;
     checkReveal();
   }
   gltfLoader.load('/assets/models/instagram.glb', (gltf) => {
     instaModel = new THREE.Group();
     const instaScene = gltf.scene;
-    // Center the model so it spins around its own center
+    instaScene.rotation.set(0, 0, 0);
     const centerBox = new THREE.Box3().setFromObject(instaScene);
     const center = centerBox.getCenter(new THREE.Vector3());
     instaScene.position.sub(center);
+    instaHalfH = centerBox.getSize(new THREE.Vector3()).y / 2;
     instaModel.add(instaScene);
-    instaModel.position.set(isMobile ? 0 : -1.2, isMobile ? 1.9 : 1.78, 0.50);
+    instaModel.position.set(isMobile ? 0 : -1.5, 0, 0.50);
     instaModel.visible = false;
-    scene.add(instaModel);
+    modelsGroup.add(instaModel);
     if (toothMaxDim !== null) matchInstaScale();
   });
 
   // ── TikTok Model ──
   let tiktokModel = null;
   let tiktokRawMaxDim = null;
+  let tiktokHalfH = 0;
   function matchTiktokScale() {
     const s = toothMaxDim / tiktokRawMaxDim;
     tiktokModel.scale.set(s, s, s);
+    tiktokModel.position.y = FLOOR_Y + tiktokHalfH * s;
     tiktokReady = true;
     checkReveal();
   }
   gltfLoader.load('/assets/models/tiktok_logo.glb', (gltf) => {
     tiktokModel = new THREE.Group();
     const tiktokScene = gltf.scene;
+    tiktokScene.rotation.set(0, 0, 0);
     const centerBox = new THREE.Box3().setFromObject(tiktokScene);
     const center = centerBox.getCenter(new THREE.Vector3());
     tiktokScene.position.sub(center);
-    tiktokRawMaxDim = Math.max(...centerBox.getSize(new THREE.Vector3()).toArray()) || 1;
+    const tiktokSize = centerBox.getSize(new THREE.Vector3());
+    tiktokRawMaxDim = Math.max(tiktokSize.x, tiktokSize.y, tiktokSize.z) || 1;
+    tiktokHalfH = tiktokSize.y / 2;
     tiktokModel.add(tiktokScene);
-    tiktokModel.position.set(isMobile ? 1.2 : 0, isMobile ? 1.9 : 1.78, 0.50);
+    tiktokModel.position.set(isMobile ? 1.2 : -0.5, 0, 0.50);
     tiktokModel.visible = false;
-    scene.add(tiktokModel);
+    modelsGroup.add(tiktokModel);
     if (toothMaxDim !== null) matchTiktokScale();
   });
 
   // ── Polaroid Camera Model ──
   let polaroidModel = null;
   let polaroidRawMaxDim = null;
+  let polaroidHalfH = 0;
   function matchPolaroidScale() {
     const s = toothMaxDim / polaroidRawMaxDim;
     polaroidModel.scale.set(s, s, s);
+    const floorY = isMobile ? FLOOR_Y_ROW2 : FLOOR_Y;
+    polaroidModel.position.y = floorY + polaroidHalfH * s;
     polaroidReady = true;
     checkReveal();
   }
   gltfLoader.load('/assets/models/polaroid_camera.glb', (gltf) => {
     polaroidModel = new THREE.Group();
     const polaroidScene = gltf.scene;
+    polaroidScene.rotation.set(0, 0, 0);
     const centerBox = new THREE.Box3().setFromObject(polaroidScene);
     const center = centerBox.getCenter(new THREE.Vector3());
     polaroidScene.position.sub(center);
-    polaroidRawMaxDim = Math.max(...centerBox.getSize(new THREE.Vector3()).toArray()) || 1;
+    const polaroidSize = centerBox.getSize(new THREE.Vector3());
+    polaroidRawMaxDim = Math.max(polaroidSize.x, polaroidSize.y, polaroidSize.z) || 1;
+    polaroidHalfH = polaroidSize.y / 2;
     polaroidModel.add(polaroidScene);
-    polaroidModel.position.set(isMobile ? -0.6 : 1.2, isMobile ? 0.75 : 1.78, 0.50);
+    polaroidModel.position.set(isMobile ? -1.2 : 0.5, 0, 0.50);
     polaroidModel.visible = false;
-    scene.add(polaroidModel);
+    modelsGroup.add(polaroidModel);
     if (toothMaxDim !== null) matchPolaroidScale();
   });
 
   // ── Kitty (About) Model ──
   let kittyModel = null;
   let kittyRawMaxDim = null;
+  let kittyHalfH = 0;
   function matchKittyScale() {
     const s = toothMaxDim / kittyRawMaxDim;
     kittyModel.scale.set(s, s, s);
+    const floorY = isMobile ? FLOOR_Y_ROW2 : FLOOR_Y;
+    kittyModel.position.y = floorY + kittyHalfH * s;
     kittyReady = true;
     checkReveal();
   }
   gltfLoader.load('/assets/models/kitty.glb', (gltf) => {
     kittyModel = new THREE.Group();
     const kittyScene = gltf.scene;
+    kittyScene.rotation.set(0, 0, 0);
     const centerBox = new THREE.Box3().setFromObject(kittyScene);
     const center = centerBox.getCenter(new THREE.Vector3());
     kittyScene.position.sub(center);
-    kittyRawMaxDim = Math.max(...centerBox.getSize(new THREE.Vector3()).toArray()) || 1;
+    const kittySize = centerBox.getSize(new THREE.Vector3());
+    kittyRawMaxDim = Math.max(kittySize.x, kittySize.y, kittySize.z) || 1;
+    kittyHalfH = kittySize.y / 2;
     kittyModel.add(kittyScene);
-    kittyModel.position.set(isMobile ? 0.6 : 2.4, isMobile ? 0.75 : 1.78, 0.50);
+    kittyModel.position.set(isMobile ? 0 : 1.5, 0, 0.50);
     kittyModel.visible = false;
-    scene.add(kittyModel);
+    modelsGroup.add(kittyModel);
     if (toothMaxDim !== null) matchKittyScale();
+  });
+
+  // ── Dollar Symbol (Prices) Model ──
+  let dollarModel = null;
+  let dollarRawMaxDim = null;
+  let dollarHalfH = 0;
+  function matchDollarScale() {
+    const s = toothMaxDim / dollarRawMaxDim;
+    dollarModel.scale.set(s, s, s);
+    const floorY = isMobile ? FLOOR_Y_ROW2 : FLOOR_Y;
+    dollarModel.position.y = floorY + dollarHalfH * s;
+    dollarReady = true;
+    checkReveal();
+  }
+  gltfLoader.load('/assets/models/low_poly_dollar_symbol.glb', (gltf) => {
+    dollarModel = new THREE.Group();
+    const dollarScene = gltf.scene;
+    // Straighten any baked-in tilt from the GLB (including child nodes)
+    dollarScene.traverse((node) => { node.rotation.set(0, 0, 0); });
+    const centerBox = new THREE.Box3().setFromObject(dollarScene);
+    const center = centerBox.getCenter(new THREE.Vector3());
+    dollarScene.position.sub(center);
+    const dollarSize = centerBox.getSize(new THREE.Vector3());
+    dollarRawMaxDim = Math.max(dollarSize.x, dollarSize.y, dollarSize.z) || 1;
+    dollarHalfH = dollarSize.y / 2;
+    dollarModel.add(dollarScene);
+    dollarModel.position.set(isMobile ? 1.2 : 2.5, 0, 0.50);
+    dollarModel.visible = false;
+    modelsGroup.add(dollarModel);
+    if (toothMaxDim !== null) matchDollarScale();
   });
 
   // ── Mouse / Touch tracking ──
@@ -375,11 +445,12 @@ export function initScene() {
 
   renderer.domElement.addEventListener('touchend', (e) => {
     if (e.changedTouches.length === 0) return;
+    e.preventDefault(); // stop browser synthesizing a click after touchend
     const t = e.changedTouches[0];
     mouse.x =  (t.clientX / window.innerWidth)  * 2 - 1;
     mouse.y = -(t.clientY / window.innerHeight) * 2 + 1;
     fireRaycast();
-  });
+  }, { passive: false });
 
   function fireRaycast() {
     raycaster.setFromCamera(mouse, camera);
@@ -402,6 +473,10 @@ export function initScene() {
     if (kittyModel) {
       const hits = raycaster.intersectObject(kittyModel, true);
       if (hits.length > 0) { window.location.href = '/pages/about.html'; return; }
+    }
+    if (dollarModel) {
+      const hits = raycaster.intersectObject(dollarModel, true);
+      if (hits.length > 0) { window.location.href = '/pages/prices.html'; return; }
     }
   }
 
@@ -468,11 +543,13 @@ export function initScene() {
     }
 
     // Tooth rotation
-    if (toothModel) toothModel.rotation.y = t * 0.4;
-    if (instaModel) instaModel.rotation.y = t * 0.4;
-    if (tiktokModel) tiktokModel.rotation.y = t * 0.4;
-    if (polaroidModel) polaroidModel.rotation.y = t * 0.4;
-    if (kittyModel) kittyModel.rotation.y = t * 0.4;
+    const spinAngle = (t - revealT) * 0.4;
+    if (toothModel)    toothModel.rotation.y    = spinAngle;
+    if (instaModel)    instaModel.rotation.y    = spinAngle;
+    if (tiktokModel)   tiktokModel.rotation.y   = spinAngle;
+    if (polaroidModel) polaroidModel.rotation.y = spinAngle;
+    if (kittyModel)    kittyModel.rotation.y    = spinAngle;
+    if (dollarModel)   dollarModel.rotation.y   = spinAngle;
 
     // Star animation
     starA.rotation.y =  t * 0.007;
