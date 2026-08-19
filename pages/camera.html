@@ -17,8 +17,17 @@
   <div id="gallery">
     <button class="gallery-arrow" id="arrow-left">&#8249;</button>
 
-    <div id="photo-wrap">
-      <img id="main-photo" alt="photo">
+    <div id="photo-column">
+      <!-- Category filter pills above photo -->
+      <div id="filter-bar">
+        <button class="filter-pill active" data-cat="all">All</button>
+        <button class="filter-pill" data-cat="grillz">Grillz</button>
+        <button class="filter-pill" data-cat="tooth-gems">Tooth Gems</button>
+        <button class="filter-pill" data-cat="charms">Charms</button>
+      </div>
+      <div id="photo-wrap">
+        <img id="main-photo" alt="photo">
+      </div>
     </div>
 
     <button class="gallery-arrow" id="arrow-right">&#8250;</button>
@@ -29,6 +38,42 @@
 
   <!-- Counter -->
   <div id="photo-counter"></div>
+
+  <!-- Submit photo button -->
+  <button id="submit-btn">✦ Submit Your Photo</button>
+
+  <!-- Submit modal -->
+  <div id="submit-modal" aria-hidden="true">
+    <div id="submit-modal-inner">
+      <button id="modal-close" aria-label="Close">✕</button>
+      <h2>Share Your Look</h2>
+      <p>Submit a photo of your Charmfluent piece to be featured in our gallery.</p>
+
+      <label for="modal-file">Choose photo</label>
+      <div id="modal-preview-wrap">
+        <img id="modal-preview" alt="preview" hidden>
+        <span id="modal-placeholder">No file chosen</span>
+      </div>
+      <input type="file" id="modal-file" accept="image/*">
+      <button id="modal-file-btn" type="button">Browse…</button>
+
+      <label for="modal-category">Category</label>
+      <select id="modal-category">
+        <option value="grillz">Grillz</option>
+        <option value="tooth-gems">Tooth Gems</option>
+        <option value="charms">Charms</option>
+      </select>
+
+      <label for="modal-name">Your name / handle <span>(optional)</span></label>
+      <input type="text" id="modal-name" placeholder="@yourhandle" maxlength="40">
+
+      <button id="modal-submit" type="button">Submit Photo</button>
+      <p id="modal-error" hidden></p>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" aria-live="polite"></div>
 
   <input type="file" id="file-input" accept="image/*" multiple>
 

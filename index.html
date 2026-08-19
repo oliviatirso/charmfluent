@@ -3,7 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Charmfluent</title>
+  <title>Charmfluent — Grillz & Tooth Gemz</title>
+  <meta name="description" content="Grillz & Tooth Gemz">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Charmfluent">
+  <meta property="og:description" content="Grillz & Tooth Gemz">
+  <meta property="og:image" content="/assets/og-image.png">
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Charmfluent">
+  <meta name="twitter:description" content="Grillz & Tooth Gemz">
+  <meta name="twitter:image" content="/assets/og-image.png">
+
   <link href="https://fonts.googleapis.com/css2?family=VT323&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -21,6 +35,26 @@
 
   <!-- Page content loads here — player floats above it -->
   <iframe id="page-frame" src="/pages/home.html"></iframe>
+
+  <noscript>
+    <style>
+      .noscript-fallback {
+        position: fixed; inset: 0;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        background: #060612; color: #D4AF37;
+        font-family: serif; text-align: center; padding: 2rem; gap: 1rem;
+      }
+      .noscript-fallback h1 { font-size: 2.5rem; color: #ff6ec7; }
+      .noscript-fallback p { font-size: 1.1rem; color: #fff; max-width: 480px; }
+      .noscript-fallback img { width: 220px; border-radius: 12px; margin-bottom: 1rem; }
+    </style>
+    <div class="noscript-fallback">
+      <img src="/assets/og-image.png" alt="Charmfluent custom grillz spelling CHARM FLUENT in pink letters">
+      <h1>Charmfluent</h1>
+      <p>Grillz &amp; Tooth Gemz — custom dental jewellery handcrafted for you.</p>
+      <p>Enable JavaScript to experience the full interactive site.</p>
+    </div>
+  </noscript>
 
 
 </body>

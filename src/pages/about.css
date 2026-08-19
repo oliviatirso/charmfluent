@@ -1,36 +1,52 @@
 body {
   background: #060612;
   min-height: 100vh;
-  overflow: hidden;
+  overflow-y: auto !important;
+}
+
+/* Gradient mask — content scrolls under this, giving a "behind the title" effect */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 180px;
+  background: linear-gradient(to bottom, #060612 55%, transparent 100%);
+  z-index: 4;
+  pointer-events: none;
 }
 
 #back-btn {
   position: fixed;
-  top: 24px; left: 28px;
+  top: 16px;
+  left: 16px;
   z-index: 10;
   font-family: 'Press Start 2P', monospace;
-  font-size: 10px;
+  font-size: 8px;
   color: rgba(255, 110, 199, 0.8);
   text-decoration: none;
   letter-spacing: 2px;
-  transition: color 0.2s;
+  padding: 8px 14px;
+  background: rgba(6,6,18,0.6);
+  border: 1px solid rgba(255,110,199,0.3);
+  border-radius: 20px;
+  transition: color 0.2s, border-color 0.2s;
 }
-#back-btn:hover { color: #ff6ec7; }
+#back-btn:hover { color: #ff6ec7; border-color: rgba(255,110,199,0.7); }
 
 #about-content {
-  position: fixed;
-  inset: 0;
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: center;
   z-index: 2;
-  padding: 80px 60px 60px;
+  padding: 80px 60px 80px;
   pointer-events: none;
 }
 
 #about-header {
-  height: 120px;
+  height: 200px;
   visibility: hidden;
 }
 
@@ -80,10 +96,9 @@ body {
 }
 
 #footer {
-  position: fixed;
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
+  display: block;
+  text-align: center;
+  padding: 20px 0 12px;
   font-family: 'Bebas Neue', sans-serif;
   font-size: 11px;
   letter-spacing: 2.5px;
@@ -93,15 +108,17 @@ body {
 
 /* ── Mobile ── */
 @media (max-width: 767px) {
-  body {
-    overflow-y: auto;
+  #back-btn {
+    font-size: 8px;
+    margin: 16px 0 0 16px;
+    padding: 8px 14px;
+    background: rgba(6,6,18,0.6);
+    border: 1px solid rgba(255,110,199,0.3);
+    border-radius: 20px;
   }
 
   #about-content {
-    position: relative;
     padding: 60px 20px 80px;
-    justify-content: flex-start;
-    min-height: 100vh;
   }
 
   #about-header {

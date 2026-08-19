@@ -16,7 +16,7 @@ import { setupLights } from '../scene/lights.js';
   renderer.toneMappingExposure = 1.4;
   renderer.domElement.style.position = 'fixed';
   renderer.domElement.style.inset = '0';
-  renderer.domElement.style.zIndex = '0';
+  renderer.domElement.style.zIndex = '6';
   renderer.domElement.style.pointerEvents = 'none';
   document.body.prepend(renderer.domElement);
 

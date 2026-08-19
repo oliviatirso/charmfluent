@@ -7,16 +7,57 @@ body {
 /* ── Back button ── */
 #back-btn {
   position: fixed;
-  top: 24px; left: 28px;
+  top: 24px; left: 8px;
   z-index: 10;
   font-family: 'Press Start 2P', monospace;
-  font-size: 10px;
+  font-size: 8px;
   color: rgba(255, 110, 199, 0.8);
   text-decoration: none;
   letter-spacing: 2px;
-  transition: color 0.2s;
+  padding: 8px 14px;
+  background: rgba(6,6,18,0.6);
+  border: 1px solid rgba(255,110,199,0.3);
+  border-radius: 20px;
+  transition: color 0.2s, border-color 0.2s;
 }
-#back-btn:hover { color: #ff6ec7; }
+#back-btn:hover { color: #ff6ec7; border-color: rgba(255,110,199,0.7); }
+
+/* ── Photo column (filter bar + photo stacked) ── */
+#photo-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Category filter pills ── */
+#filter-bar {
+  display: flex;
+  gap: 16px;
+}
+
+.filter-pill {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 13px;
+  letter-spacing: 1px;
+  padding: 12px 24px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,110,199,0.35);
+  background: rgba(6,6,18,0.7);
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.filter-pill:hover {
+  border-color: rgba(255,110,199,0.7);
+  color: rgba(255,255,255,0.9);
+}
+.filter-pill.active {
+  background: rgba(255,110,199,0.18);
+  border-color: #ff6ec7;
+  color: #ff6ec7;
+}
 
 /* ── Main gallery viewer ── */
 #gallery {
@@ -47,21 +88,41 @@ body {
 }
 #main-photo.visible { opacity: 1; }
 
+/* ── Empty state ── */
+#empty-state {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 1px;
+  text-align: center;
+  padding: 1rem;
+}
+
 /* ── Nav arrows ── */
 .gallery-arrow {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
-  color: rgba(255,255,255,0.35);
+  color: rgba(255,255,255,0.75);
   font-size: 72px;
   line-height: 1;
   cursor: pointer;
-  padding: 0 20px;
+  padding: 0 16px;
   transition: color 0.2s, transform 0.15s;
   user-select: none;
-  flex-shrink: 0;
+  z-index: 4;
 }
-.gallery-arrow:hover { color: #ff6ec7; transform: scale(1.1); }
-.gallery-arrow:active { transform: scale(0.95); }
+#arrow-left  { left: 8px; }
+#arrow-right { right: 8px; }
+.gallery-arrow:hover { color: #ff6ec7; transform: translateY(-50%) scale(1.1); }
+.gallery-arrow:active { transform: translateY(-50%) scale(0.95); }
 
 /* ── Filmstrip ── */
 #filmstrip {
@@ -90,10 +151,9 @@ body {
   transition: opacity 0.2s, border-color 0.2s;
   flex-shrink: 0;
 }
-.thumb.active {
-  opacity: 1;
-}
+.thumb.active { opacity: 1; }
 .thumb:hover { opacity: 0.8; }
+.thumb.submitted { border-color: rgba(255,110,199,0.5); }
 
 /* ── Counter ── */
 #photo-counter {
@@ -105,6 +165,207 @@ body {
   font-size: 9px;
   color: rgba(255,110,199,0.7);
   letter-spacing: 2px;
+}
+
+/* ── Submit button ── */
+#submit-btn {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  letter-spacing: 1.5px;
+  padding: 8px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,110,199,0.5);
+  background: rgba(6,6,18,0.8);
+  color: rgba(255,110,199,0.8);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+#submit-btn:hover {
+  background: rgba(255,110,199,0.15);
+  border-color: #ff6ec7;
+  color: #ff6ec7;
+}
+
+/* ── Submit modal ── */
+#submit-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6,6,18,0.85);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+#submit-modal.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+#submit-modal-inner {
+  position: relative;
+  background: #0d0d22;
+  border: 1px solid rgba(255,110,199,0.3);
+  border-radius: 12px;
+  padding: 2rem 2.2rem;
+  width: min(420px, 92vw);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.7);
+}
+
+#submit-modal-inner h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.8rem;
+  letter-spacing: 3px;
+  color: #ff6ec7;
+  margin-bottom: 2px;
+}
+
+#submit-modal-inner > p {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  line-height: 1.8;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 6px;
+}
+
+#modal-close {
+  position: absolute;
+  top: 14px; right: 16px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.4);
+  font-size: 16px;
+  cursor: pointer;
+  transition: color 0.2s;
+  line-height: 1;
+}
+#modal-close:hover { color: #ff6ec7; }
+
+#submit-modal-inner label {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,0.6);
+  margin-top: 4px;
+}
+#submit-modal-inner label span {
+  color: rgba(255,255,255,0.3);
+}
+
+#modal-preview-wrap {
+  width: 100%;
+  height: 140px;
+  border-radius: 6px;
+  border: 1px dashed rgba(255,110,199,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+#modal-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+#modal-placeholder {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: rgba(255,255,255,0.2);
+}
+
+#modal-file { display: none; }
+
+#modal-file-btn {
+  align-self: flex-start;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  padding: 6px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,110,199,0.4);
+  background: transparent;
+  color: rgba(255,110,199,0.8);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+#modal-file-btn:hover { background: rgba(255,110,199,0.12); color: #ff6ec7; }
+
+#submit-modal-inner select,
+#submit-modal-inner input[type="text"] {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,110,199,0.25);
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #fff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  letter-spacing: 1px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+#submit-modal-inner select:focus,
+#submit-modal-inner input[type="text"]:focus {
+  border-color: rgba(255,110,199,0.7);
+}
+#submit-modal-inner select option { background: #0d0d22; }
+
+#modal-submit {
+  margin-top: 6px;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(135deg, #e91e8c, #ff6ec7);
+  color: #fff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+}
+#modal-submit:hover { opacity: 0.88; transform: translateY(-1px); }
+#modal-submit:active { transform: translateY(0); }
+
+#modal-error {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: #ff4488;
+  letter-spacing: 1px;
+}
+
+/* ── Toast ── */
+#toast {
+  position: fixed;
+  bottom: 130px;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background: rgba(233,30,140,0.9);
+  color: #fff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  letter-spacing: 1px;
+  padding: 10px 20px;
+  border-radius: 20px;
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s;
+  white-space: nowrap;
+}
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 /* ── Footer ── */
@@ -131,7 +392,7 @@ body {
 
   .gallery-arrow {
     font-size: 44px;
-    padding: 0 10px;
+    padding: 0 6px;
   }
 
   .thumb {
@@ -154,5 +415,20 @@ body {
     font-size: 7px;
     top: 16px;
     right: 16px;
+  }
+
+  .filter-pill {
+    font-size: 6px;
+    padding: 5px 9px;
+  }
+
+  #submit-btn {
+    font-size: 6px;
+    bottom: 68px;
+  }
+
+  #toast {
+    bottom: 110px;
+    font-size: 6px;
   }
 }

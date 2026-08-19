@@ -67,8 +67,8 @@ import { setupLights } from '../scene/lights.js';
     const font = new Font(json);
     const titleGeo = new TextGeometry('Prices', {
       font,
-      size: isMobile ? 0.36 : 0.52,
-      depth: isMobile ? 0.07 : 0.11,
+      size: isMobile ? 0.44 : 0.68,
+      depth: isMobile ? 0.09 : 0.14,
       curveSegments: 12,
       bevelEnabled: true,
       bevelThickness: isMobile ? 0.02 : 0.03,
