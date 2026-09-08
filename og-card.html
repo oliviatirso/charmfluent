@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 1200px;
+      height: 630px;
+      overflow: hidden;
+      background: #060612;
+      font-family: 'Bebas Neue', sans-serif;
+    }
+
+    /* Radial glow */
+    .bg-glow {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 80% at 75% 50%, rgba(255,110,199,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 60% at 20% 50%, rgba(212,175,55,0.07) 0%, transparent 70%);
+    }
+
+    /* Grid lines (subtle) */
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(212,175,55,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(212,175,55,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* Photo */
+    .photo-wrap {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 560px;
+      height: 630px;
+      overflow: hidden;
+    }
+    .photo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+    }
+    /* Fade photo into dark on the right */
+    .photo-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, transparent 40%, #060612 100%);
+    }
+
+    /* Right side content */
+    .content {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 680px;
+      height: 630px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 72px 60px 40px;
+    }
+
+    .eyebrow {
+      font-size: 18px;
+      letter-spacing: 6px;
+      color: #D4AF37;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+    }
+
+    .brand {
+      font-size: 108px;
+      line-height: 0.9;
+      letter-spacing: 4px;
+      color: #ffffff;
+      text-shadow:
+        0 0 40px rgba(255,110,199,0.5),
+        0 0 80px rgba(255,110,199,0.2);
+      margin-bottom: 24px;
+    }
+
+    .tagline {
+      font-size: 28px;
+      letter-spacing: 4px;
+      color: rgba(255,255,255,0.45);
+      margin-bottom: 40px;
+      text-transform: uppercase;
+    }
+
+    .divider {
+      width: 64px;
+      height: 2px;
+      background: linear-gradient(to right, #ff6ec7, #D4AF37);
+      margin-bottom: 32px;
+    }
+
+    .cta {
+      font-size: 16px;
+      letter-spacing: 5px;
+      color: rgba(255,110,199,0.7);
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
+
+  <div class="photo-wrap">
+    <img src="file:///Volumes/Liv-T7/charmfluent/public/assets/og-image.png" alt="Charmfluent grillz">
+  </div>
+
+  <div class="content">
+    <p class="eyebrow">Custom Dental Jewellery</p>
+    <h1 class="brand">Charm<br>fluent</h1>
+    <p class="tagline">Grillz &amp; Tooth Gems</p>
+    <div class="divider"></div>
+    <p class="cta">charmfluent.com</p>
+  </div>
+</body>
+</html>

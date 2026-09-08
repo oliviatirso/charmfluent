@@ -7,6 +7,7 @@ import { setupLights } from '../scene/lights.js';
 
 (function initScene() {
   const isMobile = window.innerWidth < 768;
+
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -22,27 +23,26 @@ import { setupLights } from '../scene/lights.js';
   const scene  = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(isMobile ? 68 : 52, window.innerWidth / window.innerHeight, 0.1, 200);
   camera.position.set(0, 1.6, 7.2);
-  camera.lookAt(0, isMobile ? -0.9 : 0.35, 0);
+  camera.lookAt(0, isMobile ? -0.6 : 0.35, 0);
 
   setupLights(scene);
 
   const pinkLight1 = new THREE.PointLight(0xff1a6e, 6, 14);
   pinkLight1.position.set(0, 3.5, 3);
   scene.add(pinkLight1);
+  const pinkLight2 = new THREE.PointLight(0xff88cc, 3.5, 12);
+  pinkLight2.position.set(-3, 2, 1);
+  scene.add(pinkLight2);
   const whiteSpec = new THREE.DirectionalLight(0xffffff, 5.5);
   whiteSpec.position.set(0, 8, 6);
   scene.add(whiteSpec);
-
-  const titleSpot = new THREE.SpotLight(0xffffff, 10, 20, Math.PI / 8, 0.35, 1.5);
-  titleSpot.position.set(0, 7, 5);
-  titleSpot.target.position.set(0, 2.85, 0);
-  scene.add(titleSpot);
-  scene.add(titleSpot.target);
+  const rimPink = new THREE.PointLight(0xcc0044, 4, 10);
+  rimPink.position.set(3, 1, -2);
+  scene.add(rimPink);
 
   const { starA, starB, starC } = createStarfield(scene);
 
-  // CubeCamera for chrome reflections
-  const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(512, {
+  const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256, {
     format: THREE.RGBAFormat,
     generateMipmaps: true,
     minFilter: THREE.LinearMipmapLinearFilter,
@@ -61,14 +61,14 @@ import { setupLights } from '../scene/lights.js';
   });
 
   let titleMesh = null;
-
   const ttfLoader = new TTFLoader();
   ttfLoader.load('/assets/fonts/UnifrakturMaguntia-Regular.ttf', (json) => {
     const font = new Font(json);
-    const titleGeo = new TextGeometry('Prices', {
+
+    const titleGeo = new TextGeometry('Privacy Policy', {
       font,
-      size: isMobile ? 0.44 : 0.68,
-      depth: isMobile ? 0.09 : 0.14,
+      size: isMobile ? 0.36 : 0.52,
+      depth: isMobile ? 0.07 : 0.11,
       curveSegments: 12,
       bevelEnabled: true,
       bevelThickness: isMobile ? 0.02 : 0.03,
@@ -78,7 +78,7 @@ import { setupLights } from '../scene/lights.js';
     titleGeo.computeBoundingBox();
     const w = titleGeo.boundingBox.max.x - titleGeo.boundingBox.min.x;
     titleMesh = new THREE.Mesh(titleGeo, chromeMaterial);
-    titleMesh.position.set(-w / 2, isMobile ? 2.7 : 2.85, 0);
+    titleMesh.position.set(-w / 2, isMobile ? 2.8 : 2.85, 0);
     scene.add(titleMesh);
   });
 
@@ -107,6 +107,13 @@ import { setupLights } from '../scene/lights.js';
     pinkLight1.position.x = Math.sin(t * 0.8) * 2.5;
     whiteSpec.position.x  = Math.sin(t * 0.4) * 4;
 
+    if (titleMesh) {
+      titleMesh.visible = false;
+      cubeCamera.update(renderer, scene);
+      titleMesh.visible = true;
+      titleMesh.rotation.y = Math.sin(t * 0.25) * 0.06;
+    }
+
     starA.rotation.y =  t * 0.007;
     starB.rotation.y = -t * 0.004;
     starC.rotation.y =  t * 0.0025;
@@ -117,10 +124,6 @@ import { setupLights } from '../scene/lights.js';
     twinkleStars(starA, t);
     twinkleStars(starB, t);
     twinkleStars(starC, t);
-
-    if (titleMesh) titleMesh.visible = false;
-    cubeCamera.update(renderer, scene);
-    if (titleMesh) titleMesh.visible = true;
 
     renderer.render(scene, camera);
   })();

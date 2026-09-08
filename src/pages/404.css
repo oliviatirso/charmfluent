@@ -1,0 +1,108 @@
+body {
+  background: #060612;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* Gradient mask — keeps 3D title readable */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 220px;
+  background: linear-gradient(to bottom, #060612 45%, transparent 100%);
+  z-index: 5;
+  pointer-events: none;
+}
+
+#back-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: rgba(255, 110, 199, 0.8);
+  text-decoration: none;
+  letter-spacing: 2px;
+  padding: 8px 14px;
+  background: rgba(6,6,18,0.6);
+  border: 1px solid rgba(255,110,199,0.3);
+  border-radius: 20px;
+  transition: color 0.2s, border-color 0.2s;
+}
+#back-btn:hover { color: #ff6ec7; border-color: rgba(255,110,199,0.7); }
+
+#not-found-content {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  gap: 20px;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Invisible spacer that pushes text below the 3D title */
+#not-found-spacer {
+  height: 220px;
+  flex-shrink: 0;
+}
+
+#not-found-msg {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 4px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+#not-found-sub {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  color: rgba(255, 110, 199, 0.5);
+  line-height: 2;
+}
+
+#home-btn {
+  margin-top: 8px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  padding: 14px 28px;
+  border-radius: 24px;
+  border: 1px solid rgba(255,110,199,0.5);
+  background: rgba(6,6,18,0.8);
+  color: rgba(255,110,199,0.85);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+#home-btn:hover {
+  background: rgba(255,110,199,0.15);
+  border-color: #ff6ec7;
+  color: #ff6ec7;
+}
+
+/* ── Mobile ── */
+@media (max-width: 767px) {
+  #not-found-spacer {
+    height: 160px;
+  }
+
+  #not-found-msg {
+    font-size: 20px;
+    letter-spacing: 2px;
+  }
+
+  #not-found-sub {
+    font-size: 7px;
+  }
+}

@@ -18,6 +18,11 @@
   <meta name="twitter:description" content="Grillz & Tooth Gemz">
   <meta name="twitter:image" content="/assets/og-image.png">
 
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+
   <link href="https://fonts.googleapis.com/css2?family=VT323&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -35,6 +40,248 @@
 
   <!-- Page content loads here — player floats above it -->
   <iframe id="page-frame" src="/pages/home.html"></iframe>
+
+  <!-- ============================================================
+       PETZ COMPANION (mobile-only)
+  ============================================================ -->
+  <style>
+    /* ── shared base ── */
+    #petz {
+      position: fixed;
+      width: 64px; height: 64px;
+      z-index: 6;
+      display: none;
+      cursor: pointer;
+      touch-action: manipulation;
+      image-rendering: pixelated;
+      background-repeat: no-repeat;
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+      transition: top 3s ease-in-out, left 3s ease-in-out;
+    }
+    @media (max-width: 768px) {
+      #petz { display: block; top: 88%; left: 65%; }
+    }
+
+    /* ── dracula cat ── */
+    #petz {
+      background-image: url('/assets/models/CatPackFree/drculacat.png');
+      background-size: 384px 64px;
+      animation: catAnim 0.7s steps(6) infinite;
+    }
+    @keyframes catAnim {
+      from { background-position: 0 0; }
+      to   { background-position: -384px 0; }
+    }
+
+    /* ── box animation ── */
+    @keyframes catBox {
+      from { background-position: 0 0; }
+      to   { background-position: -256px 0; }
+    }
+    #petz.in-box {
+      background-image: url('/assets/models/CatPackFree/Box3.png');
+      background-size: 256px 64px;
+      animation: catBox 0.5s steps(4) infinite;
+    }
+
+    /* ── speech bubble (main cat only) ── */
+    .petz-bubble {
+      position: absolute;
+      bottom: 72px; left: 50%;
+      transform: translateX(-50%) scale(0.8);
+      background: #1a0a2e;
+      border: 2px solid #d4af37;
+      color: #fff;
+      font-family: 'VT323', monospace;
+      font-size: 15px;
+      line-height: 1.3;
+      padding: 6px 10px;
+      border-radius: 8px;
+      width: 160px;
+      text-align: center;
+      pointer-events: none;
+      opacity: 0;
+    }
+    .petz-bubble::after {
+      content: '';
+      position: absolute;
+      top: 100%; left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #d4af37;
+    }
+    #petz.in-box .petz-bubble {
+      animation: bubblePop 3s ease forwards;
+    }
+    @keyframes bubblePop {
+      0%   { opacity: 0; transform: translateX(-50%) scale(0.8); }
+      15%  { opacity: 1; transform: translateX(-50%) scale(1); }
+      80%  { opacity: 1; transform: translateX(-50%) scale(1); }
+      100% { opacity: 0; transform: translateX(-50%) scale(0.9); }
+    }
+
+    /* ── random meow pop ── */
+    .petz-meow {
+      position: absolute;
+      top: -20px; left: 50%;
+      transform: translateX(-50%);
+      font-family: 'VT323', monospace;
+      font-size: 16px;
+      color: #ff6ec7;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .petz-meow.popping {
+      animation: meowPop 1.8s ease forwards;
+    }
+    @keyframes meowPop {
+      0%   { opacity: 0; transform: translateX(-50%) translateY(0) scale(0.5); }
+      20%  { opacity: 1; transform: translateX(-50%) translateY(-8px) scale(1); }
+      70%  { opacity: 1; transform: translateX(-50%) translateY(-16px) scale(1); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-32px) scale(0.9); }
+    }
+  </style>
+
+  <div id="petz">
+    <span class="petz-bubble">You should get toof gems &amp; grillz</span>
+    <span class="petz-meow">meow~</span>
+  </div>
+
+  <script>
+    const petz = document.getElementById('petz');
+    const frame = document.getElementById('page-frame');
+
+    function updatePetzVisibility() {
+      const isHome = frame.contentWindow.location.pathname === '/pages/home.html'
+                  || frame.contentWindow.location.pathname === '/';
+      petz.style.display = isHome ? '' : 'none';
+    }
+    frame.addEventListener('load', updatePetzVisibility);
+
+    // ── tap: jump in box ──
+    petz.addEventListener('click', () => {
+      if (petz.classList.contains('in-box')) return;
+      petz.classList.add('in-box');
+      setTimeout(() => petz.classList.remove('in-box'), 3100);
+    });
+
+    // ── lazy wander every 10s ──
+    setInterval(() => {
+      if (!petz.classList.contains('in-box')) {
+        petz.style.top  = (85 + Math.random() * 10) + '%';
+        petz.style.left = (40 + Math.random() * 40) + '%';
+      }
+    }, 10000);
+
+    // ── random meow pop ──
+    const MEOWS = ['meow~', 'purrr', 'mrrrow', '✨', 'hiss..'];
+    function scheduleRandomMeow() {
+      setTimeout(() => {
+        const meow = petz.querySelector('.petz-meow');
+        meow.textContent = MEOWS[Math.floor(Math.random() * MEOWS.length)];
+        meow.classList.remove('popping');
+        meow.getBoundingClientRect();
+        meow.classList.add('popping');
+        scheduleRandomMeow();
+      }, 15000 + Math.random() * 20000);
+    }
+    scheduleRandomMeow();
+  </script>
+
+  <!-- ============================================================
+       COOKIE CONSENT BANNER
+  ============================================================ -->
+  <style>
+    #cookie-banner {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 9000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 24px 20px;
+      background: rgba(6, 6, 18, 0.96);
+      border-top: 1px solid rgba(212, 175, 55, 0.25);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transform: translateY(0);
+      transition: transform 0.4s ease, opacity 0.4s ease;
+    }
+    #cookie-banner.hidden {
+      transform: translateY(100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+    #cookie-banner p {
+      font-family: 'VT323', monospace;
+      font-size: 17px;
+      color: rgba(255, 255, 255, 0.6);
+      text-align: center;
+      letter-spacing: 0.5px;
+      max-width: 560px;
+      margin: 0;
+    }
+    #cookie-banner p a {
+      color: rgba(255, 110, 199, 0.75);
+      text-decoration: none;
+    }
+    #cookie-banner p a:hover { color: #ff6ec7; }
+    #cookie-banner-btns {
+      display: flex;
+      gap: 12px;
+    }
+    .cookie-btn {
+      font-family: 'VT323', monospace;
+      font-size: 17px;
+      letter-spacing: 1.5px;
+      border: none;
+      border-radius: 20px;
+      padding: 6px 22px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .cookie-btn:hover { opacity: 0.8; }
+    #cookie-accept {
+      background: #D4AF37;
+      color: #060612;
+    }
+    #cookie-decline {
+      background: transparent;
+      color: rgba(255, 255, 255, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+    }
+    #cookie-decline:hover { color: rgba(255, 255, 255, 0.9); border-color: rgba(255,255,255,0.6); }
+  </style>
+
+  <div id="cookie-banner" class="hidden" aria-live="polite" role="dialog" aria-label="Cookie consent">
+    <p>We use cookies to improve your experience. See our <a href="/pages/privacy.html" target="_top">Privacy Policy</a>.</p>
+    <div id="cookie-banner-btns">
+      <button class="cookie-btn" id="cookie-accept">Accept</button>
+      <button class="cookie-btn" id="cookie-decline">Decline</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const banner = document.getElementById('cookie-banner');
+      const CONSENT_KEY = 'cf_cookie_consent';
+
+      if (!localStorage.getItem(CONSENT_KEY)) {
+        // Small delay so the banner slides in after page paint
+        setTimeout(() => banner.classList.remove('hidden'), 800);
+      }
+
+      function dismiss(value) {
+        localStorage.setItem(CONSENT_KEY, value);
+        banner.classList.add('hidden');
+      }
+
+      document.getElementById('cookie-accept').addEventListener('click', () => dismiss('accepted'));
+      document.getElementById('cookie-decline').addEventListener('click', () => dismiss('declined'));
+    })();
+  </script>
 
   <noscript>
     <style>

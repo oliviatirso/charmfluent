@@ -4,7 +4,7 @@ body {
   overflow-y: auto !important;
 }
 
-/* Gradient mask — content scrolls under this, giving a "behind the title" effect */
+/* Gradient mask — content scrolls under the 3D title */
 body::before {
   content: '';
   position: fixed;
@@ -38,7 +38,7 @@ body::before {
 }
 #back-btn:hover { color: #ff6ec7; border-color: rgba(255,110,199,0.7); }
 
-#about-content {
+#terms-content {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -48,54 +48,46 @@ body::before {
   pointer-events: none;
 }
 
-#about-header {
+#terms-header {
   height: 200px;
   visibility: hidden;
 }
 
-#about-body {
+#terms-body {
   pointer-events: all;
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 36px;
-  max-width: 820px;
+  max-width: 720px;
   width: 100%;
-  margin-top: 32px;
+  margin-top: 16px;
 }
 
-#creator-photo {
-  width: 480px;
-  height: 640px;
-  object-fit: cover;
-  object-position: center top;
-  border-radius: 4px;
-  flex-shrink: 0;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 32px rgba(255,110,199,0.2);
+.terms-updated {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 1.5px;
+  margin: 0 0 40px;
 }
 
-#creator-text {
-  flex: 1;
-  text-align: left;
+.terms-section {
+  margin-bottom: 36px;
 }
 
-#creator-name {
+.terms-section h2 {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 80px;
-  letter-spacing: 4px;
+  font-size: 28px;
+  letter-spacing: 3px;
   color: #ff6ec7;
-  margin: 0 0 20px;
-  text-shadow: 0 0 20px rgba(255,110,199,0.4);
-  white-space: nowrap;
+  text-shadow: 0 0 14px rgba(255,110,199,0.35);
+  margin: 0 0 10px;
 }
 
-#creator-bio {
+.terms-section p {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 30px;
-  letter-spacing: 2px;
-  color: rgba(255,255,255,0.75);
-  line-height: 1.7;
-  max-width: 480px;
+  font-size: 20px;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.75;
+  margin: 0;
 }
 
 #footer {
@@ -122,40 +114,23 @@ body::before {
     border-radius: 20px;
   }
 
-  #about-content {
+  #terms-content {
     padding: 60px 20px 80px;
   }
 
-  #about-header {
+  #terms-header {
     height: 80px;
   }
 
-  #about-body {
-    flex-direction: column;
-    align-items: center;
-    gap: 24px;
-    margin-top: 16px;
+  #terms-body {
+    margin-top: 12px;
   }
 
-  #creator-photo {
-    width: 100%;
-    height: auto;
-    max-height: none;
-    aspect-ratio: 3 / 4;
-    object-position: center 20%;
+  .terms-section h2 {
+    font-size: 22px;
   }
 
-  #creator-text {
-    text-align: center;
-  }
-
-  #creator-name {
-    font-size: 48px;
-    white-space: normal;
-  }
-
-  #creator-bio {
-    font-size: 20px;
-    max-width: 100%;
+  .terms-section p {
+    font-size: 17px;
   }
 }

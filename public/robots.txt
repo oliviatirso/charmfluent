@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+Disallow: /pages/privacy.html
+Disallow: /pages/terms.html
+Disallow: /pages/tooth-gemz.html
+
+Sitemap: https://charmfluent.com/sitemap.xml

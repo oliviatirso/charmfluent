@@ -198,7 +198,7 @@ function buildFilmstrip() {
   visiblePhotos.forEach((photo, i) => {
     const img = document.createElement('img');
     img.src = photo.src;
-    img.alt = '';
+    img.alt = `Charmfluent ${photo.category} thumbnail ${i + 1}`;
     img.className = 'thumb' + (i === current ? ' active' : '') + (photo.submitted ? ' submitted' : '');
     img.addEventListener('click', () => showPhoto(i));
     filmstrip.appendChild(img);
@@ -227,6 +227,7 @@ function showPhoto(index) {
   mainPhoto.classList.remove('visible');
   setTimeout(() => {
     mainPhoto.src = photo.src;
+    mainPhoto.alt = `Charmfluent ${photo.category} — photo ${current + 1} of ${visiblePhotos.length}`;
     mainPhoto.onload = () => mainPhoto.classList.add('visible');
   }, 150);
 

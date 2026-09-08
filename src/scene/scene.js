@@ -110,6 +110,11 @@ export function initScene() {
     envMapIntensity: 1.6,
   });
 
+  // Flat label material — consistent pink across all tab labels regardless of lighting
+  const labelMaterial = new THREE.MeshBasicMaterial({
+    color: new THREE.Color(1.0, 0.55, 0.75),
+  });
+
   // ── 3D Text Group ──
   const textGroup = new THREE.Group();
   scene.add(textGroup);
@@ -207,7 +212,7 @@ export function initScene() {
       });
       geo.computeBoundingBox();
       const w = geo.boundingBox.max.x - geo.boundingBox.min.x;
-      const mesh = new THREE.Mesh(geo, subChromeMaterial);
+      const mesh = new THREE.Mesh(geo, labelMaterial);
       mesh.position.set(xAnchor - w / 2, yPos, 0.50);
       scene.add(mesh);
     }

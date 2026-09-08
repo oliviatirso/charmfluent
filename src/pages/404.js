@@ -41,8 +41,7 @@ import { setupLights } from '../scene/lights.js';
 
   const { starA, starB, starC } = createStarfield(scene);
 
-  // CubeCamera for chrome reflections
-  const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(512, {
+  const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(isMobile ? 256 : 512, {
     format: THREE.RGBAFormat,
     generateMipmaps: true,
     minFilter: THREE.LinearMipmapLinearFilter,
@@ -65,14 +64,14 @@ import { setupLights } from '../scene/lights.js';
   const ttfLoader = new TTFLoader();
   ttfLoader.load('/assets/fonts/UnifrakturMaguntia-Regular.ttf', (json) => {
     const font = new Font(json);
-    const titleGeo = new TextGeometry('Prices', {
+    const titleGeo = new TextGeometry('404', {
       font,
-      size: isMobile ? 0.44 : 0.68,
-      depth: isMobile ? 0.09 : 0.14,
+      size: isMobile ? 0.72 : 0.98,
+      depth: isMobile ? 0.10 : 0.16,
       curveSegments: 12,
       bevelEnabled: true,
-      bevelThickness: isMobile ? 0.02 : 0.03,
-      bevelSize: isMobile ? 0.014 : 0.022,
+      bevelThickness: isMobile ? 0.025 : 0.035,
+      bevelSize: isMobile ? 0.016 : 0.024,
       bevelSegments: 8,
     });
     titleGeo.computeBoundingBox();
