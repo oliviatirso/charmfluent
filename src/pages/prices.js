@@ -67,18 +67,18 @@ import { setupLights } from '../scene/lights.js';
     const font = new Font(json);
     const titleGeo = new TextGeometry('Prices', {
       font,
-      size: isMobile ? 0.44 : 0.68,
-      depth: isMobile ? 0.09 : 0.14,
+      size: isMobile ? 0.68 : 0.68,
+      depth: isMobile ? 0.13 : 0.14,
       curveSegments: 12,
       bevelEnabled: true,
-      bevelThickness: isMobile ? 0.02 : 0.03,
-      bevelSize: isMobile ? 0.014 : 0.022,
+      bevelThickness: isMobile ? 0.026 : 0.03,
+      bevelSize: isMobile ? 0.018 : 0.022,
       bevelSegments: 8,
     });
     titleGeo.computeBoundingBox();
     const w = titleGeo.boundingBox.max.x - titleGeo.boundingBox.min.x;
     titleMesh = new THREE.Mesh(titleGeo, chromeMaterial);
-    titleMesh.position.set(-w / 2, isMobile ? 2.7 : 2.85, 0);
+    titleMesh.position.set(-w / 2, isMobile ? 2.3 : 2.85, 0);
     scene.add(titleMesh);
   });
 

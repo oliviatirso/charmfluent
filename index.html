@@ -78,17 +78,19 @@
     #petz {
       position: fixed;
       width: 64px; height: 64px;
-      z-index: 6;
-      display: none;
+      z-index: 9997;
+      display: block;
+      top: 88%; left: 65%;
       cursor: grab;
       touch-action: none;
       image-rendering: pixelated;
       background-repeat: no-repeat;
-      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
       transition: top 3s ease-in-out, left 3s ease-in-out;
     }
-    @media (max-width: 768px) {
-      #petz { display: block; top: 88%; left: 65%; }
+    @media (min-width: 769px) {
+      #petz { top: 85%; left: 88%; }
     }
 
     /* ── dracula cat ── */
@@ -181,12 +183,18 @@
     const petz = document.getElementById('petz');
     const frame = document.getElementById('page-frame');
 
-    function updatePetzVisibility() {
-      const isHome = frame.contentWindow.location.pathname === '/pages/home.html'
-                  || frame.contentWindow.location.pathname === '/';
-      petz.style.display = isHome ? '' : 'none';
-    }
-    frame.addEventListener('load', updatePetzVisibility);
+    window.addEventListener('message', function(e) {
+      if (e.data === 'cf:home') petz.style.display = '';
+      else if (e.data === 'cf:out') petz.style.display = 'none';
+    });
+    frame.addEventListener('load', function() {
+      try {
+        var path = frame.contentWindow.location.pathname;
+        if (path !== '/pages/home.html' && path !== '/') {
+          petz.style.display = 'none';
+        }
+      } catch(e) {}
+    });
 
     // ── drag + tap ──
     petz.addEventListener('pointerdown', (e) => {
