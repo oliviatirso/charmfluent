@@ -99,10 +99,19 @@ import { setupLights } from '../scene/lights.js';
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
+  function transitionTo(url) {
+    window.parent.postMessage('cf:out', '*');
+    setTimeout(function () { window.location.href = url; }, 270);
+  }
+  const backBtn = document.getElementById('back-btn');
+  if (backBtn) backBtn.addEventListener('click', function (e) { e.preventDefault(); transitionTo('/pages/home.html'); });
+
   const clock = new THREE.Clock();
+  let readySignalled = false;
   (function animate() {
     requestAnimationFrame(animate);
     const t = clock.getElapsedTime();
+    if (!readySignalled) { readySignalled = true; window.parent.postMessage('cf:ready', '*'); }
 
     pinkLight1.position.x = Math.sin(t * 0.8) * 2.5;
     whiteSpec.position.x  = Math.sin(t * 0.4) * 4;

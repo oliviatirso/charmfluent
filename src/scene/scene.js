@@ -9,6 +9,15 @@ import { setupLights } from './lights.js';
 
 export function initScene() {
   const isMobile = window.innerWidth < 768;
+  // Per-device layout config — covers common phone widths up to tablet/desktop
+  const w = window.innerWidth;
+  const cfg = w < 320  ? { title: 0.34, sub: 0.11, label: 0.09, labelDepth: 0.014, toothScale: 0.22, spacing: 0.78 } // very small (Galaxy Fold outer, etc.)
+            : w < 360  ? { title: 0.38, sub: 0.12, label: 0.10, labelDepth: 0.015, toothScale: 0.24, spacing: 0.85 } // iPhone SE 1st gen (320px), small Android
+            : w < 390  ? { title: 0.42, sub: 0.13, label: 0.11, labelDepth: 0.018, toothScale: 0.28, spacing: 0.95 } // iPhone SE 3rd gen, iPhone 12/13 mini (375px)
+            : w < 415  ? { title: 0.62, sub: 0.22, label: 0.24, labelDepth: 0.020, toothScale: 0.40, spacing: 1.38 } // iPhone 16 (393px), Pixel 7 (412px)
+            : w < 480  ? { title: 0.66, sub: 0.23, label: 0.25, labelDepth: 0.020, toothScale: 0.42, spacing: 1.45 } // iPhone 16 Pro Max (430px), large Android
+            : w < 768  ? { title: 0.60, sub: 0.20, label: 0.15, labelDepth: 0.020, toothScale: 0.32, spacing: 1.20 } // small tablets / landscape phones
+            :             { title: 0.78, sub: 0.22, label: 0.15, labelDepth: 0.020, toothScale: 0.22, spacing: 1.20 }; // desktop / tablet landscape
 
   // ── Renderer ──
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -59,7 +68,7 @@ export function initScene() {
   // Subtitle "Custom Grillz & Tooth Charms"
   const subSpot = new THREE.SpotLight(0xff88cc, 2.5, 18, Math.PI / 7, 0.45, 1.5);
   subSpot.position.set(0, 6, 5);
-  subSpot.target.position.set(0, 2.44, 0);
+  subSpot.target.position.set(0, 2.29, 0);
   scene.add(subSpot);
   scene.add(subSpot.target);
 
@@ -142,31 +151,31 @@ export function initScene() {
     const font = new Font(json);
 
     // ── Layout config ──
-    const titleSize  = isMobile ? 0.42 : 0.52;
-    const subSize    = isMobile ? 0.15 : 0.17;
-    const labelSize  = isMobile ? 0.14 : 0.15;
-    const labelDepth = isMobile ? 0.018 : 0.02;
+    const titleSize  = cfg.title;
+    const subSize    = cfg.sub;
+    const labelSize  = cfg.label;
+    const labelDepth = cfg.labelDepth;
 
     // Desktop icon x positions (single row, 6 items centered with 1.0 spacing)
     const deskX = [-2.5, -1.5, -0.5, 0.5, 1.5, 2.5];
     // Mobile icon x positions (row 1: tooth/insta/tiktok, row 2: polaroid/kitty/dollar)
-    const mobRow1X = [-1.2, 0, 1.2]; // tooth, insta, tiktok
-    const mobRow2X = [-1.2, 0, 1.2]; // polaroid, kitty, dollar
+    const mobRow1X = [-cfg.spacing, 0, cfg.spacing]; // tooth, insta, tiktok
+    const mobRow2X = [-cfg.spacing, 0, cfg.spacing]; // polaroid, kitty, dollar
 
     const iconY1 = isMobile ? 1.9  : 1.78;  // row 1 (or only row on desktop)
     const iconY2 = 0.75;                      // row 2 (mobile only)
     const labelY1 = isMobile ? FLOOR_Y - 0.38 : 1.2;
-    const labelY2 = isMobile ? FLOOR_Y_ROW2 - 0.38 : 0.1;
+    const labelY2 = isMobile ? FLOOR_Y_ROW2 - 0.62 : 0.1;
 
     // ── Main Title: "Charmfluent" ──
     const titleGeo = new TextGeometry('Charmfluent', {
       font,
       size: titleSize,
-      depth: isMobile ? 0.07 : 0.11,
+      depth: isMobile ? 0.10 : 0.16,
       curveSegments: 12,
       bevelEnabled: true,
-      bevelThickness: isMobile ? 0.02 : 0.03,
-      bevelSize: isMobile ? 0.015 : 0.022,
+      bevelThickness: isMobile ? 0.025 : 0.04,
+      bevelSize: isMobile ? 0.018 : 0.03,
       bevelSegments: 8,
     });
 
@@ -174,8 +183,19 @@ export function initScene() {
     const titleWidth  = titleGeo.boundingBox.max.x - titleGeo.boundingBox.min.x;
     const centerOffset = -0.5 * titleWidth;
 
+    // Visible world width at Z=0 — used to auto-fit title & subtitle
+    const vFOVRad = THREE.MathUtils.degToRad(camera.fov);
+    const visibleW = 2 * Math.tan(vFOVRad / 2) * camera.position.z * (window.innerWidth / window.innerHeight);
+    const maxTextW = visibleW * 0.90;
+
     textMesh = new THREE.Mesh(titleGeo, chromeMaterial);
-    textMesh.position.set(centerOffset, isMobile ? 2.7 : 2.85, 0);
+    if (titleWidth > maxTextW) {
+      const s = maxTextW / titleWidth;
+      textMesh.scale.set(s, s, s);
+      textMesh.position.set(-(maxTextW / 2), isMobile ? 2.7 : 2.85, 0);
+    } else {
+      textMesh.position.set(centerOffset, isMobile ? 2.7 : 2.85, 0);
+    }
     textGroup.add(textMesh);
 
     // ── Subtitle ──
@@ -195,11 +215,18 @@ export function initScene() {
     const subOffset = -0.5 * subWidth;
 
     subMesh = new THREE.Mesh(subGeo, subChromeMaterial);
-    subMesh.position.set(subOffset, isMobile ? 2.38 : 2.44, 0);
+    if (subWidth > maxTextW) {
+      const s = maxTextW / subWidth;
+      subMesh.scale.set(s, s, s);
+      subMesh.position.set(-(maxTextW / 2), isMobile ? 2.23 : 2.29, 0);
+    } else {
+      subMesh.position.set(subOffset, isMobile ? 2.23 : 2.29, 0);
+    }
     textGroup.add(subMesh);
 
-    // Helper to make a label mesh
-    function makeLabel(text, xAnchor, yPos) {
+    // Helper to make a label mesh — auto-scales to fit within maxW
+    const labelMaxW = cfg.spacing * 0.88;
+    function makeLabel(text, xAnchor, yPos, zPos = 0.50) {
       const geo = new TextGeometry(text, {
         font,
         size: labelSize,
@@ -213,7 +240,13 @@ export function initScene() {
       geo.computeBoundingBox();
       const w = geo.boundingBox.max.x - geo.boundingBox.min.x;
       const mesh = new THREE.Mesh(geo, labelMaterial);
-      mesh.position.set(xAnchor - w / 2, yPos, 0.50);
+      if (w > labelMaxW) {
+        const s = labelMaxW / w;
+        mesh.scale.set(s, s, s);
+        mesh.position.set(xAnchor - labelMaxW / 2, yPos, zPos);
+      } else {
+        mesh.position.set(xAnchor - w / 2, yPos, zPos);
+      }
       scene.add(mesh);
     }
 
@@ -262,13 +295,13 @@ export function initScene() {
   const gltfLoader = new GLTFLoader();
   gltfLoader.setMeshoptDecoder(MeshoptDecoder);
   // Floor Y: the Y where all model bottoms will sit
-  const FLOOR_Y      = isMobile ? 1.2 : 1.5;    // row 1 (desktop uses this for all)
-  const FLOOR_Y_ROW2 = isMobile ? -0.2 : 0.45;   // mobile row 2 only
+  const FLOOR_Y      = isMobile ? 0.7 : 1.5;    // row 1 (desktop uses this for all)
+  const FLOOR_Y_ROW2 = isMobile ? -1.1 : 0.45;   // mobile row 2 only
 
 gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
     toothModel = gltf.scene;
     // Measure raw size at scale=1, then apply scale
-    const toothScale = isMobile ? 0.32 : 0.22;
+    const toothScale = cfg.toothScale;
     const rawBox = new THREE.Box3().setFromObject(toothModel);
     const rawSize = rawBox.getSize(new THREE.Vector3());
     toothMaxDim = Math.max(rawSize.x, rawSize.y, rawSize.z) * toothScale;
@@ -276,7 +309,7 @@ gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
     toothModel.scale.set(toothScale, toothScale, toothScale);
     // Bottom-align: place so model bottom sits at FLOOR_Y
     const toothBottomY = FLOOR_Y - rawBox.min.y * toothScale;
-    toothModel.position.set(isMobile ? -1.2 : -2.5, toothBottomY, 0.50);
+    toothModel.position.set(isMobile ? -cfg.spacing : -2.5, toothBottomY, 0.50);
     toothModel.visible = false;
     modelsGroup.add(toothModel);
     toothReady = true;
@@ -339,7 +372,7 @@ gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
     tiktokRawMaxDim = Math.max(tiktokSize.x, tiktokSize.y, tiktokSize.z) || 1;
     tiktokHalfH = tiktokSize.y / 2;
     tiktokModel.add(tiktokScene);
-    tiktokModel.position.set(isMobile ? 1.2 : -0.5, 0, 0.50);
+    tiktokModel.position.set(isMobile ? cfg.spacing : -0.5, 0, 0.50);
     tiktokModel.visible = false;
     modelsGroup.add(tiktokModel);
     if (toothMaxDim !== null) matchTiktokScale();
@@ -368,7 +401,7 @@ gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
     polaroidRawMaxDim = Math.max(polaroidSize.x, polaroidSize.y, polaroidSize.z) || 1;
     polaroidHalfH = polaroidSize.y / 2;
     polaroidModel.add(polaroidScene);
-    polaroidModel.position.set(isMobile ? -1.2 : 0.5, 0, 0.50);
+    polaroidModel.position.set(isMobile ? -cfg.spacing : 0.5, 0, 0.50);
     polaroidModel.visible = false;
     modelsGroup.add(polaroidModel);
     if (toothMaxDim !== null) matchPolaroidScale();
@@ -427,7 +460,7 @@ gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
     dollarRawMaxDim = Math.max(dollarSize.x, dollarSize.y, dollarSize.z) || 1;
     dollarHalfH = dollarSize.y / 2;
     dollarModel.add(dollarScene);
-    dollarModel.position.set(isMobile ? 1.2 : 2.5, 0, 0.50);
+    dollarModel.position.set(isMobile ? cfg.spacing : 2.5, 0, 0.50);
     dollarModel.visible = false;
     modelsGroup.add(dollarModel);
     if (toothMaxDim !== null) matchDollarScale();
@@ -448,6 +481,7 @@ gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
   // ── Click / Tap detection ──
   const raycaster = new THREE.Raycaster();
 
+
   renderer.domElement.addEventListener('touchend', (e) => {
     if (e.changedTouches.length === 0) return;
     e.preventDefault(); // stop browser synthesizing a click after touchend
@@ -456,6 +490,11 @@ gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
     mouse.y = -(t.clientY / window.innerHeight) * 2 + 1;
     fireRaycast();
   }, { passive: false });
+
+  function transitionTo(url) {
+    window.parent.postMessage('cf:out', '*');
+    setTimeout(function () { window.location.href = url; }, 270);
+  }
 
   function fireRaycast() {
     raycaster.setFromCamera(mouse, camera);
@@ -473,15 +512,15 @@ gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
     }
     if (polaroidModel) {
       const hits = raycaster.intersectObject(polaroidModel, true);
-      if (hits.length > 0) { window.location.href = '/pages/camera.html'; return; }
+      if (hits.length > 0) { transitionTo('/pages/camera.html'); return; }
     }
     if (kittyModel) {
       const hits = raycaster.intersectObject(kittyModel, true);
-      if (hits.length > 0) { window.location.href = '/pages/about.html'; return; }
+      if (hits.length > 0) { transitionTo('/pages/about.html'); return; }
     }
     if (dollarModel) {
       const hits = raycaster.intersectObject(dollarModel, true);
-      if (hits.length > 0) { window.location.href = '/pages/prices.html'; return; }
+      if (hits.length > 0) { transitionTo('/pages/prices.html'); return; }
     }
   }
 
@@ -523,11 +562,14 @@ gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
   // ── Animation Loop ──
   const clock = new THREE.Clock();
   let frameCount = 0;
+  let readySignalled = false;
 
   (function animate() {
     requestAnimationFrame(animate);
     const t = clock.getElapsedTime();
     frameCount++;
+
+    if (!readySignalled) { readySignalled = true; window.parent.postMessage('cf:ready', '*'); }
 
     // Animate lights for a dynamic chrome shimmer
     pinkLight1.position.x = Math.sin(t * 0.8) * 2.5;

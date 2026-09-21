@@ -99,6 +99,8 @@ body::before {
 }
 
 #footer {
+  position: sticky;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -108,18 +110,18 @@ body::before {
   font-size: 11px;
   letter-spacing: 2.5px;
   color: rgba(255,255,255,0.4);
-  z-index: 1;
+  background: linear-gradient(to bottom, transparent, #060612 40%);
+  z-index: 20;
 }
 
 /* ── Mobile ── */
 @media (max-width: 767px) {
   #back-btn {
-    font-size: 8px;
-    margin: 16px 0 0 16px;
-    padding: 8px 14px;
-    background: rgba(6,6,18,0.6);
-    border: 1px solid rgba(255,110,199,0.3);
-    border-radius: 20px;
+    font-size: 7px;
+    top: 14px;
+    left: 14px;
+    padding: 5px 10px;
+    min-height: unset;
   }
 
   #about-content {
@@ -127,7 +129,7 @@ body::before {
   }
 
   #about-header {
-    height: 80px;
+    height: 96px;
   }
 
   #about-body {

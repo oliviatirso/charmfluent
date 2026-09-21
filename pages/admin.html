@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin – Charmfluent</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/pages/admin.css">
+</head>
+<body>
+
+  <!-- Password Gate -->
+  <div id="admin-gate">
+    <div id="admin-gate-card">
+      <h1>Admin</h1>
+      <p>Charmfluent dashboard</p>
+      <form id="gate-form">
+        <input type="password" id="gate-password" placeholder="Password" autocomplete="current-password">
+        <button type="submit">Enter</button>
+      </form>
+      <p id="gate-error"></p>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="admin-dashboard" hidden>
+    <header id="admin-header">
+      <span id="admin-logo">Charmfluent Admin</span>
+      <nav id="admin-tabs">
+        <button class="admin-tab active" data-tab="photos">Photos</button>
+        <button class="admin-tab" data-tab="orders">Orders</button>
+      </nav>
+      <button id="admin-logout">Log out</button>
+    </header>
+
+    <!-- Photos Tab -->
+    <section id="tab-photos" class="admin-tab-content">
+      <div id="upload-section">
+        <h2>Upload Photos</h2>
+        <form id="upload-form">
+          <div class="form-row">
+            <label for="upload-file">Photos</label>
+            <input type="file" id="upload-file" accept="image/*" multiple>
+          </div>
+          <div class="form-row">
+            <label for="upload-category">Category</label>
+            <select id="upload-category">
+              <option value="grills">Grillz</option>
+              <option value="gems">Tooth Gems</option>
+            </select>
+          </div>
+          <button type="submit" id="upload-btn">Upload</button>
+        </form>
+        <p id="upload-progress"></p>
+      </div>
+
+      <div id="photos-section">
+        <h2>Gallery Photos</h2>
+        <div id="photos-grid"></div>
+      </div>
+    </section>
+
+    <!-- Orders Tab -->
+    <section id="tab-orders" class="admin-tab-content" hidden>
+      <div id="orders-coming-soon">
+        <h2>Orders</h2>
+        <p>Order tracking coming soon.</p>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="/src/pages/admin.js"></script>
+</body>
+</html>

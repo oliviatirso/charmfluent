@@ -1,0 +1,310 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #060612;
+  color: #e8e8e8;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+/* ── Gate ── */
+
+#admin-gate {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+#admin-gate[hidden] { display: none; }
+
+#admin-gate-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 110, 199, 0.25);
+  border-radius: 12px;
+  max-width: 360px;
+  padding: 40px;
+  text-align: center;
+  width: 100%;
+}
+
+#admin-gate-card h1 {
+  color: #ff6ec7;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+#admin-gate-card > p {
+  color: #888;
+  font-size: 12px;
+  margin-bottom: 24px;
+}
+
+#gate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#gate-password {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 110, 199, 0.3);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  padding: 12px 16px;
+  width: 100%;
+}
+#gate-password:focus { border-color: #ff6ec7; }
+
+#gate-form button {
+  background: #ff6ec7;
+  border: none;
+  border-radius: 8px;
+  color: #060612;
+  cursor: pointer;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  padding: 14px;
+  transition: background 0.15s;
+}
+#gate-form button:hover { background: #ff9ddd; }
+
+#gate-error {
+  color: #ff5555;
+  font-size: 11px;
+  margin-top: 8px;
+  min-height: 16px;
+}
+
+/* ── Dashboard ── */
+
+#admin-dashboard[hidden] { display: none; }
+
+#admin-header {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 110, 199, 0.15);
+  display: flex;
+  gap: 16px;
+  padding: 14px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+#admin-logo {
+  color: #ff6ec7;
+  flex: 1;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+}
+
+#admin-tabs { display: flex; gap: 4px; }
+
+.admin-tab {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #888;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 6px 14px;
+  transition: all 0.15s;
+}
+.admin-tab:hover { color: #e8e8e8; }
+.admin-tab.active {
+  border-color: rgba(255, 110, 199, 0.4);
+  color: #ff6ec7;
+}
+
+#admin-logout {
+  background: none;
+  border: 1px solid rgba(255, 110, 199, 0.3);
+  border-radius: 6px;
+  color: #888;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 6px 12px;
+  transition: all 0.15s;
+}
+#admin-logout:hover { border-color: #ff6ec7; color: #ff6ec7; }
+
+/* ── Tab content ── */
+
+.admin-tab-content {
+  margin: 0 auto;
+  max-width: 1100px;
+  padding: 32px 24px;
+}
+.admin-tab-content[hidden] { display: none; }
+
+.admin-tab-content h2 {
+  color: #ff6ec7;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  margin-bottom: 20px;
+}
+
+/* ── Upload section ── */
+
+#upload-section {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 110, 199, 0.15);
+  border-radius: 10px;
+  margin-bottom: 40px;
+  padding: 28px;
+}
+
+#upload-form {
+  align-items: flex-end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-row label {
+  color: #aaa;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+#upload-file {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 110, 199, 0.3);
+  border-radius: 8px;
+  color: #e8e8e8;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 10px 14px;
+}
+
+#upload-category {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 110, 199, 0.3);
+  border-radius: 8px;
+  color: #e8e8e8;
+  cursor: pointer;
+  font-size: 13px;
+  min-width: 140px;
+  padding: 10px 14px;
+}
+#upload-category option { background: #0d0d1e; }
+
+#upload-btn {
+  background: #ff6ec7;
+  border: none;
+  border-radius: 8px;
+  color: #060612;
+  cursor: pointer;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  padding: 12px 20px;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+#upload-btn:hover:not(:disabled) { background: #ff9ddd; }
+#upload-btn:disabled { cursor: not-allowed; opacity: 0.5; }
+
+#upload-progress {
+  color: #aaa;
+  font-size: 12px;
+  margin-top: 14px;
+  min-height: 18px;
+}
+
+/* ── Photos grid ── */
+
+#photos-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.grid-msg {
+  color: #666;
+  font-size: 13px;
+  grid-column: 1 / -1;
+  padding: 32px;
+  text-align: center;
+}
+.grid-msg.error { color: #ff5555; }
+
+.photo-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 110, 199, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: opacity 0.3s;
+}
+.photo-card.deleting { opacity: 0.35; pointer-events: none; }
+
+.photo-card img {
+  aspect-ratio: 1;
+  display: block;
+  object-fit: cover;
+  width: 100%;
+}
+
+.photo-meta {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  padding: 8px 10px 4px;
+}
+
+.photo-cat {
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.photo-cat.grills { background: rgba(212, 175, 55, 0.18); color: #D4AF37; }
+.photo-cat.gems   { background: rgba(255, 110, 199, 0.18); color: #ff6ec7; }
+
+.photo-name {
+  color: #555;
+  font-size: 10px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.delete-btn {
+  background: rgba(255, 55, 55, 0.08);
+  border: none;
+  border-top: 1px solid rgba(255, 55, 55, 0.2);
+  color: #ff5555;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 8px;
+  transition: background 0.15s;
+  width: 100%;
+}
+.delete-btn:hover { background: rgba(255, 55, 55, 0.18); }
+
+/* ── Orders placeholder ── */
+
+#orders-coming-soon {
+  padding: 60px 0;
+  text-align: center;
+}
+#orders-coming-soon p {
+  color: #555;
+  font-size: 13px;
+  margin-top: 16px;
+}

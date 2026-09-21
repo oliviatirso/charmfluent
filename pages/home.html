@@ -21,22 +21,20 @@
 <body>
 
   <!-- Loading Screen -->
-  <div id="loader">
+  <div id="loader" style="display:none">
     <div id="loader-brand">Charmfluent</div>
     <div id="loader-bar">
       <div id="loader-fill"></div>
     </div>
     <div id="loader-text">Loading...</div>
   </div>
+  <script>if (!localStorage.getItem('cf_loaded')) document.getElementById('loader').style.removeProperty('display');</script>
 
   <!-- Vignette overlay -->
   <div id="vignette"></div>
 
-  <!-- Hint -->
-  <main id="hint" aria-label="Interactive 3D scene">✦ Tap the icons to explore ✦</main>
-
   <!-- Footer -->
-  <footer id="footer"><a href="/pages/privacy.html" id="privacy-link" target="_top">Privacy Policy</a><a href="/pages/terms.html" id="privacy-link" target="_top">Terms &amp; Conditions</a>© Charmfluent Studios. All Rights Reserved.</footer>
+  <footer id="footer"><span id="hint">✦ Tap the icons to explore ✦</span><a href="/pages/privacy.html" id="privacy-link" target="_top">Privacy Policy</a><a href="/pages/terms.html" id="privacy-link" target="_top">Terms &amp; Conditions</a><span class="footer-copy">© Charmfluent Studios. All Rights Reserved.</span></footer>
 
   <!-- Three.js canvas renders here -->
   <script type="module" src="/src/main.js"></script>

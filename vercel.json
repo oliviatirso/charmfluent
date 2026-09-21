@@ -1,4 +1,5 @@
 {
+  "devCommand": "vite --port $PORT",
   "headers": [
     {
       "source": "/(.*)",
@@ -9,9 +10,5 @@
         }
       ]
     }
-  ],
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "status": 404, "dest": "/pages/404.html" }
   ]
 }

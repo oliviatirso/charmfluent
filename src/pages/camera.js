@@ -76,12 +76,12 @@ import { setupLights } from '../scene/lights.js';
     const font = new Font(json);
     const titleGeo = new TextGeometry('Gallery', {
       font,
-      size: isMobile ? 0.52 : 0.78,
-      depth: isMobile ? 0.10 : 0.16,
+      size: isMobile ? 0.68 : 1.02,
+      depth: isMobile ? 0.13 : 0.20,
       curveSegments: 12,
       bevelEnabled: true,
-      bevelThickness: isMobile ? 0.02 : 0.03,
-      bevelSize: isMobile ? 0.014 : 0.022,
+      bevelThickness: isMobile ? 0.026 : 0.038,
+      bevelSize: isMobile ? 0.018 : 0.028,
       bevelSegments: 8,
     });
     titleGeo.computeBoundingBox();
@@ -103,10 +103,19 @@ import { setupLights } from '../scene/lights.js';
     mouse.y = -(t.clientY / window.innerHeight) * 2 + 1;
   }, { passive: true });
 
+  function transitionTo(url) {
+    window.parent.postMessage('cf:out', '*');
+    setTimeout(function () { window.location.href = url; }, 270);
+  }
+  const backBtn = document.getElementById('back-btn');
+  if (backBtn) backBtn.addEventListener('click', function (e) { e.preventDefault(); transitionTo('/pages/home.html'); });
+
   const clock = new THREE.Clock();
+  let readySignalled = false;
   (function animate() {
     requestAnimationFrame(animate);
     const t = clock.getElapsedTime();
+    if (!readySignalled) { readySignalled = true; window.parent.postMessage('cf:ready', '*'); }
 
     pinkLight1.position.x = Math.sin(t * 0.8) * 2.5;
     pinkLight1.position.y = 3.5 + Math.sin(t * 0.6) * 0.5;
@@ -140,34 +149,24 @@ import { setupLights } from '../scene/lights.js';
 
 // ── Photo gallery ──
 
-// Each entry: { src, category, submitted? }
 const PRELOADED_PHOTOS = [
-  { src: '/assets/photos/8CE2B6A5-AC88-48CC-815C-EC62A22EAB63.jpg', category: 'grillz' },
-  { src: '/assets/photos/B093A471-5528-4D7D-9DEB-462151E34212.jpg', category: 'grillz' },
-  { src: '/assets/photos/IMG_0056.jpg',        category: 'grillz' },
-  { src: '/assets/photos/IMG_7143.jpg',        category: 'tooth-gems' },
-  { src: '/assets/photos/IMG_7935.jpg',        category: 'grillz' },
-  { src: '/assets/photos/IMG_7937.jpg',        category: 'grillz' },
-  { src: '/assets/photos/IMG_7940.jpg',        category: 'tooth-gems' },
-  { src: '/assets/photos/IMG_8566.jpg',        category: 'grillz' },
-  { src: '/assets/photos/IMG_8568.jpg',        category: 'grillz' },
-  { src: '/assets/photos/IMG_8576.jpg',        category: 'charms' },
-  { src: '/assets/photos/IMG_8577.jpg',        category: 'charms' },
-  { src: '/assets/photos/RenderedImage.JPEG',  category: 'tooth-gems' },
+  // ── Grillz ──
+  { src: '/assets/photos/grills/IMG_7936.jpg',       category: 'grills' },
+  { src: '/assets/photos/grills/IMG_8569.jpg',       category: 'grills' },
+  { src: '/assets/photos/grills/IMG_7143.jpg',       category: 'grills' },
+  { src: '/assets/photos/grills/IMG_7935.jpg',       category: 'grills' },
+  { src: '/assets/photos/grills/IMG_7937.jpg',       category: 'grills' },
+  { src: '/assets/photos/grills/IMG_7940.jpg',       category: 'grills' },
+  { src: '/assets/photos/grills/IMG_8566.jpg',       category: 'grills' },
+  { src: '/assets/photos/grills/IMG_8568.jpg',       category: 'grills' },
+  { src: '/assets/photos/grills/RenderedImage.JPEG', category: 'grills' },
+  // ── Tooth Gems ──
+  { src: '/assets/photos/gems/IMG_0056.jpg', category: 'gems' },
+  { src: '/assets/photos/gems/IMG_8576.jpg', category: 'gems' },
+  { src: '/assets/photos/gems/IMG_8577.jpg', category: 'gems' },
 ];
 
-const LS_KEY = 'cf_submitted_photos';
-
-function loadSubmitted() {
-  try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }
-  catch { return []; }
-}
-
-function saveSubmitted(submitted) {
-  localStorage.setItem(LS_KEY, JSON.stringify(submitted));
-}
-
-let allPhotos = [...PRELOADED_PHOTOS, ...loadSubmitted()];
+let allPhotos = [...PRELOADED_PHOTOS];
 let activeCategory = 'all';
 let visiblePhotos  = [...allPhotos];
 let current        = 0;
@@ -199,7 +198,7 @@ function buildFilmstrip() {
     const img = document.createElement('img');
     img.src = photo.src;
     img.alt = `Charmfluent ${photo.category} thumbnail ${i + 1}`;
-    img.className = 'thumb' + (i === current ? ' active' : '') + (photo.submitted ? ' submitted' : '');
+    img.className = 'thumb' + (i === current ? ' active' : '');
     img.addEventListener('click', () => showPhoto(i));
     filmstrip.appendChild(img);
   });
@@ -240,8 +239,17 @@ function showPhoto(index) {
   if (activeThumb) activeThumb.scrollIntoView({ inline: 'center', behavior: 'smooth' });
 }
 
-buildFilmstrip();
-if (visiblePhotos.length > 0) showPhoto(0);
+// Show preloaded photos immediately, then replace with API photos if available
+applyFilter('all');
+
+fetch('/api/photos')
+  .then(r => r.ok ? r.json() : [])
+  .then(apiPhotos => {
+    if (!apiPhotos.length) return;
+    allPhotos = apiPhotos.map(p => ({ src: p.url, category: p.category }));
+    applyFilter(activeCategory);
+  })
+  .catch(() => { /* keep preloaded photos */ });
 
 // ── Auto-slideshow ──
 let slideshowTimer = setInterval(() => {
@@ -277,78 +285,4 @@ photoWrap.addEventListener('touchend', e => {
   swipeStartX = null;
 }, { passive: true });
 
-// ── Submit modal ──
-const modal       = document.getElementById('submit-modal');
-const modalFile   = document.getElementById('modal-file');
-const modalPreview   = document.getElementById('modal-preview');
-const modalPlaceholder = document.getElementById('modal-placeholder');
-const modalError  = document.getElementById('modal-error');
-const toast       = document.getElementById('toast');
 
-document.getElementById('submit-btn').addEventListener('click', () => {
-  modal.classList.add('open');
-  modal.setAttribute('aria-hidden', 'false');
-});
-
-function closeModal() {
-  modal.classList.remove('open');
-  modal.setAttribute('aria-hidden', 'true');
-  modalFile.value = '';
-  modalPreview.hidden = true;
-  modalPlaceholder.hidden = false;
-  modalError.hidden = true;
-  document.getElementById('modal-name').value = '';
-}
-
-document.getElementById('modal-close').addEventListener('click', closeModal);
-modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-
-document.getElementById('modal-file-btn').addEventListener('click', () => modalFile.click());
-
-modalFile.addEventListener('change', () => {
-  const file = modalFile.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    modalPreview.src = ev.target.result;
-    modalPreview.hidden = false;
-    modalPlaceholder.hidden = true;
-  };
-  reader.readAsDataURL(file);
-});
-
-document.getElementById('modal-submit').addEventListener('click', () => {
-  const file = modalFile.files[0];
-  if (!file) {
-    modalError.textContent = 'Please choose a photo first.';
-    modalError.hidden = false;
-    return;
-  }
-  modalError.hidden = true;
-
-  const category = document.getElementById('modal-category').value;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    const newPhoto = { src: ev.target.result, category, submitted: true };
-
-    // Persist to localStorage (only submitted ones)
-    const submitted = loadSubmitted();
-    submitted.push(newPhoto);
-    saveSubmitted(submitted);
-
-    // Add to master list and refresh
-    allPhotos.push(newPhoto);
-    applyFilter(activeCategory);
-
-    closeModal();
-    showToast('Photo added to gallery! ✦');
-  };
-  reader.readAsDataURL(file);
-});
-
-function showToast(msg) {
-  toast.textContent = msg;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 3000);
-}

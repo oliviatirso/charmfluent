@@ -41,6 +41,35 @@
   <!-- Page content loads here — player floats above it -->
   <iframe id="page-frame" src="/pages/home.html"></iframe>
 
+  <!-- ── Page transition overlay ── -->
+  <style>
+    #page-transition {
+      position: fixed; inset: 0;
+      z-index: 9998;
+      background: #060612;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.26s ease;
+    }
+    #page-transition.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+  </style>
+  <div id="page-transition"></div>
+  <script>
+    (function () {
+      const overlay = document.getElementById('page-transition');
+      window.addEventListener('message', function (e) {
+        if (e.data === 'cf:out') {
+          overlay.classList.add('active');
+        } else if (e.data === 'cf:ready') {
+          setTimeout(function () { overlay.classList.remove('active'); }, 40);
+        }
+      });
+    })();
+  </script>
+
   <!-- ============================================================
        PETZ COMPANION (mobile-only)
   ============================================================ -->
@@ -51,8 +80,8 @@
       width: 64px; height: 64px;
       z-index: 6;
       display: none;
-      cursor: pointer;
-      touch-action: manipulation;
+      cursor: grab;
+      touch-action: none;
       image-rendering: pixelated;
       background-repeat: no-repeat;
       filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
@@ -159,11 +188,48 @@
     }
     frame.addEventListener('load', updatePetzVisibility);
 
-    // ── tap: jump in box ──
-    petz.addEventListener('click', () => {
-      if (petz.classList.contains('in-box')) return;
-      petz.classList.add('in-box');
-      setTimeout(() => petz.classList.remove('in-box'), 3100);
+    // ── drag + tap ──
+    petz.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      petz.setPointerCapture(e.pointerId);
+      petz.style.cursor     = 'grabbing';
+      petz.style.transition = 'none';
+
+      const startX   = e.clientX;
+      const startY   = e.clientY;
+      const rect     = petz.getBoundingClientRect();
+      const origLeft = rect.left;
+      const origTop  = rect.top;
+      let   moved    = false;
+
+      function onMove(ev) {
+        const dx = ev.clientX - startX;
+        const dy = ev.clientY - startY;
+        if (dx * dx + dy * dy > 25) moved = true;
+        if (!moved) return;
+        petz.style.left = (origLeft + dx) + 'px';
+        petz.style.top  = (origTop  + dy) + 'px';
+      }
+
+      function onUp() {
+        petz.removeEventListener('pointermove', onMove);
+        petz.removeEventListener('pointerup',   onUp);
+        petz.style.cursor = 'grab';
+
+        // Convert final px position back to % so wander transitions still work
+        const r = petz.getBoundingClientRect();
+        petz.style.left = (r.left / window.innerWidth  * 100).toFixed(2) + '%';
+        petz.style.top  = (r.top  / window.innerHeight * 100).toFixed(2) + '%';
+        requestAnimationFrame(() => { petz.style.transition = ''; });
+
+        if (!moved && !petz.classList.contains('in-box')) {
+          petz.classList.add('in-box');
+          setTimeout(() => petz.classList.remove('in-box'), 3100);
+        }
+      }
+
+      petz.addEventListener('pointermove', onMove);
+      petz.addEventListener('pointerup',   onUp);
     });
 
     // ── lazy wander every 10s ──

@@ -67,18 +67,27 @@ import { setupLights } from '../scene/lights.js';
 
     const titleGeo = new TextGeometry('About the Creator', {
       font,
-      size: isMobile ? 0.36 : 0.52,
-      depth: isMobile ? 0.07 : 0.11,
+      size: isMobile ? 0.49 : 0.63,
+      depth: isMobile ? 0.10 : 0.13,
       curveSegments: 12,
       bevelEnabled: true,
-      bevelThickness: isMobile ? 0.02 : 0.03,
-      bevelSize: isMobile ? 0.014 : 0.022,
+      bevelThickness: isMobile ? 0.028 : 0.036,
+      bevelSize: isMobile ? 0.020 : 0.028,
       bevelSegments: 8,
     });
     titleGeo.computeBoundingBox();
     const w = titleGeo.boundingBox.max.x - titleGeo.boundingBox.min.x;
     titleMesh = new THREE.Mesh(titleGeo, chromeMaterial);
-    titleMesh.position.set(-w / 2, isMobile ? 2.8 : 2.85, 0);
+
+    // Auto-fit: scale down if title exceeds 90% of visible world width
+    const vFovRad = THREE.MathUtils.degToRad(camera.fov);
+    const visibleHeight = 2 * Math.tan(vFovRad / 2) * camera.position.z;
+    const visibleWidth  = visibleHeight * camera.aspect;
+    const maxW = visibleWidth * 0.90;
+    const s = w > maxW ? maxW / w : 1;
+
+    titleMesh.position.set(s < 1 ? -(w * s) / 2 : -w / 2, isMobile ? 2.6 : 3.05, 0);
+    if (s < 1) titleMesh.scale.set(s, s, s);
     scene.add(titleMesh);
   });
 
@@ -99,10 +108,19 @@ import { setupLights } from '../scene/lights.js';
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
+  function transitionTo(url) {
+    window.parent.postMessage('cf:out', '*');
+    setTimeout(function () { window.location.href = url; }, 270);
+  }
+  const backBtn = document.getElementById('back-btn');
+  if (backBtn) backBtn.addEventListener('click', function (e) { e.preventDefault(); transitionTo('/pages/home.html'); });
+
   const clock = new THREE.Clock();
+  let readySignalled = false;
   (function animate() {
     requestAnimationFrame(animate);
     const t = clock.getElapsedTime();
+    if (!readySignalled) { readySignalled = true; window.parent.postMessage('cf:ready', '*'); }
 
     pinkLight1.position.x = Math.sin(t * 0.8) * 2.5;
     whiteSpec.position.x  = Math.sin(t * 0.4) * 4;
