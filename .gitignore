@@ -24,3 +24,10 @@ dist-ssr
 *.sw?
 .vercel
 .env*
+
+# Claude Code local files
+.claude/settings.json
+.claude/skills/
+
+# Supabase temp files
+supabase/.temp/
