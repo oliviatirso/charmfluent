@@ -103,6 +103,8 @@ body::before {
   z-index: 1;
 }
 
+/* ── Light Mode ── */
+
 /* ── Mobile ── */
 @media (max-width: 767px) {
   #back-btn {

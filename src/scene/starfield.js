@@ -1,14 +1,14 @@
 import * as THREE from 'three';
 
-// Brand palette tints — white weighted ~60%, colored ~40%
+// Black stars
 const TINTS = [
-  [1.00, 1.00, 1.00], // white (×3 for weighting)
-  [1.00, 1.00, 1.00],
-  [1.00, 1.00, 1.00],
-  [1.00, 0.43, 0.78], // pink
-  [0.91, 0.12, 0.55], // hot pink
-  [0.83, 0.69, 0.22], // gold
-  [0.60, 0.25, 1.00], // purple
+  [0.00, 0.00, 0.00], // black (×7 for weighting)
+  [0.00, 0.00, 0.00],
+  [0.00, 0.00, 0.00],
+  [0.00, 0.00, 0.00],
+  [0.00, 0.00, 0.00],
+  [0.00, 0.00, 0.00],
+  [0.00, 0.00, 0.00],
 ];
 
 function isWhite(t) { return t[0] === 1 && t[1] === 1 && t[2] === 1; }
@@ -82,6 +82,10 @@ export function createStarfield(scene) {
   const starA = makeStars(1800, 42, 0.055, 0.85);
   const starB = makeStars(840,  52, 0.09,  0.40);
   const starC = makeStars(360,  38, 0.12,  0.22);
+
+  starA.visible = false;
+  starB.visible = false;
+  starC.visible = false;
 
   scene.add(starA, starB, starC);
   return { starA, starB, starC };

@@ -66,10 +66,11 @@ function showDashboard() {
 
 document.querySelectorAll('.admin-tab').forEach(tab => {
   tab.addEventListener('click', () => {
-    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    const target = tab.dataset.tab;
+    document.querySelectorAll('.admin-tab').forEach(t =>
+      t.classList.toggle('active', t.dataset.tab === target));
     document.querySelectorAll('.admin-tab-content').forEach(c => c.setAttribute('hidden', ''));
-    tab.classList.add('active');
-    document.getElementById(`tab-${tab.dataset.tab}`).removeAttribute('hidden');
+    document.getElementById(`tab-${target}`).removeAttribute('hidden');
   });
 });
 

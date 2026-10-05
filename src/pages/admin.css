@@ -308,3 +308,103 @@ body {
   font-size: 13px;
   margin-top: 16px;
 }
+
+/* Mobile nav hidden on desktop */
+#admin-tabs-mobile { display: none; }
+
+/* ── Mobile ── */
+
+@media (max-width: 600px) {
+  /* Gate */
+  #admin-gate { align-items: flex-start; padding-top: 80px; }
+  #admin-gate-card { padding: 32px 24px; }
+  #admin-gate-card h1 { font-size: 12px; }
+  #gate-password { font-size: 16px; padding: 14px 16px; } /* 16px prevents iOS zoom */
+  #gate-form button { padding: 16px; }
+
+  /* Header — logo + logout only, tabs move to bottom */
+  #admin-header {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+  #admin-logo { font-size: 8px; }
+  #admin-tabs {
+    display: none; /* tabs live in bottom nav on mobile */
+  }
+  #admin-logout { padding: 8px 14px; font-size: 11px; }
+
+  /* Bottom nav bar */
+  #admin-dashboard {
+    padding-bottom: 68px; /* clear the bottom nav */
+  }
+  #admin-tabs-mobile {
+    background: rgba(6, 6, 18, 0.96);
+    border-top: 1px solid rgba(255, 110, 199, 0.2);
+    bottom: 0;
+    display: flex;
+    left: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    position: fixed;
+    right: 0;
+    z-index: 50;
+  }
+  #admin-tabs-mobile .admin-tab {
+    border: none;
+    border-radius: 0;
+    flex: 1;
+    font-size: 10px;
+    padding: 14px 8px 12px;
+    text-align: center;
+  }
+  #admin-tabs-mobile .admin-tab.active {
+    border-top: 2px solid #ff6ec7;
+    color: #ff6ec7;
+  }
+
+  /* Tab content */
+  .admin-tab-content { padding: 20px 16px; }
+
+  /* Upload section */
+  #upload-section {
+    border-radius: 12px;
+    margin-bottom: 24px;
+    padding: 20px 16px;
+  }
+  .admin-tab-content h2 { margin-bottom: 16px; }
+  #upload-form {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .form-row { width: 100%; }
+  #upload-file {
+    font-size: 14px;
+    padding: 13px 14px;
+    width: 100%;
+  }
+  #upload-category {
+    font-size: 16px; /* prevents iOS zoom */
+    min-width: unset;
+    padding: 13px 14px;
+    width: 100%;
+  }
+  #upload-btn {
+    font-size: 9px;
+    padding: 16px;
+    width: 100%;
+  }
+  #upload-progress { font-size: 12px; }
+
+  /* Photos grid — 2 columns */
+  #photos-grid {
+    gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .photo-meta { padding: 6px 8px 2px; }
+  .photo-cat { font-size: 8px; }
+  .photo-name { display: none; }
+  .delete-btn {
+    font-size: 12px;
+    padding: 11px 8px;
+  }
+}

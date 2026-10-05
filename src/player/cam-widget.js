@@ -143,6 +143,17 @@ updateGrid();
 showPhoto(0);
 let autoTimer = setInterval(() => showPhoto(current + 1), 3000);
 
+// Replace with Supabase photos when available
+fetch('/api/photos')
+  .then(r => r.ok ? r.json() : null)
+  .then(apiPhotos => {
+    if (!apiPhotos || !apiPhotos.length) return;
+    photos = apiPhotos.map(p => ({ src: p.url, name: p.filename || p.category }));
+    showPhoto(0);
+    updateGrid();
+  })
+  .catch(() => { /* keep preloaded photos */ });
+
 // ─── VIEW TOGGLE ───
 function showView(v) {
   curView = v;
