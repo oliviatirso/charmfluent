@@ -4,19 +4,20 @@ import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { createStarfield, twinkleStars } from '../scene/starfield.js';
 import { setupLights } from '../scene/lights.js';
+import { createHalftoneBackground } from '../scene/halftoneBg.js';
+import { isMobile, pixelRatio } from '../utils/device.js';
 
 (function initScene() {
-  const isMobile = window.innerWidth < 768;
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: !isMobile, alpha: true, powerPreference: 'high-performance' });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(pixelRatio);
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.4;
   renderer.domElement.style.position = 'fixed';
   renderer.domElement.style.inset = '0';
-  renderer.domElement.style.zIndex = '6';
+  renderer.domElement.style.zIndex = '4';
   renderer.domElement.style.pointerEvents = 'none';
   document.body.prepend(renderer.domElement);
 
@@ -24,6 +25,21 @@ import { setupLights } from '../scene/lights.js';
   const camera = new THREE.PerspectiveCamera(isMobile ? 68 : 52, window.innerWidth / window.innerHeight, 0.1, 200);
   camera.position.set(0, 1.6, 7.2);
   camera.lookAt(0, isMobile ? -0.6 : 0.35, 0);
+
+  scene.background = null;
+
+  const bgRenderer = new THREE.WebGLRenderer({ antialias: false });
+  bgRenderer.setSize(window.innerWidth, window.innerHeight);
+  bgRenderer.setPixelRatio(pixelRatio);
+  bgRenderer.domElement.style.position = 'fixed';
+  bgRenderer.domElement.style.inset = '0';
+  bgRenderer.domElement.style.zIndex = '0';
+  bgRenderer.domElement.style.pointerEvents = 'none';
+  document.body.prepend(bgRenderer.domElement);
+  const bgScene = new THREE.Scene();
+  const bgCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const halftone = createHalftoneBackground(bgRenderer);
+  bgScene.add(halftone.mesh);
 
   setupLights(scene);
 
@@ -41,6 +57,7 @@ import { setupLights } from '../scene/lights.js';
   scene.add(rimPink);
 
   const { starA, starB, starC } = createStarfield(scene);
+
 
   const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256, {
     format: THREE.RGBAFormat,
@@ -61,23 +78,23 @@ import { setupLights } from '../scene/lights.js';
   });
 
   let titleMesh = null;
+  let shadowMesh = null;
   const ttfLoader = new TTFLoader();
   ttfLoader.load('/assets/fonts/UnifrakturMaguntia-Regular.ttf', (json) => {
     const font = new Font(json);
 
     const titleGeo = new TextGeometry('About the Creator', {
       font,
-      size: isMobile ? 0.49 : 0.63,
-      depth: isMobile ? 0.10 : 0.13,
+      size: isMobile ? 0.62 : 0.63,
+      depth: isMobile ? 0.12 : 0.13,
       curveSegments: 12,
       bevelEnabled: true,
-      bevelThickness: isMobile ? 0.028 : 0.036,
-      bevelSize: isMobile ? 0.020 : 0.028,
+      bevelThickness: isMobile ? 0.022 : 0.036,
+      bevelSize: isMobile ? 0.016 : 0.028,
       bevelSegments: 8,
     });
     titleGeo.computeBoundingBox();
     const w = titleGeo.boundingBox.max.x - titleGeo.boundingBox.min.x;
-    titleMesh = new THREE.Mesh(titleGeo, chromeMaterial);
 
     // Auto-fit: scale down if title exceeds 90% of visible world width
     const vFovRad = THREE.MathUtils.degToRad(camera.fov);
@@ -86,7 +103,23 @@ import { setupLights } from '../scene/lights.js';
     const maxW = visibleWidth * 0.90;
     const s = w > maxW ? maxW / w : 1;
 
-    titleMesh.position.set(s < 1 ? -(w * s) / 2 : -w / 2, isMobile ? 2.6 : 3.05, 0);
+    const titleY = isMobile ? 2.7 : 2.5;
+    const titleX = s < 1 ? -(w * s) / 2 : -w / 2;
+
+    const shadowMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(0, 0, 0),
+      transparent: true,
+      opacity: 0.45,
+      roughness: 1,
+      metalness: 0,
+    });
+    shadowMesh = new THREE.Mesh(titleGeo, shadowMat);
+    shadowMesh.position.set(titleX + 0.07, titleY - 0.1, -0.35);
+    if (s < 1) shadowMesh.scale.set(s, s, s);
+    scene.add(shadowMesh);
+
+    titleMesh = new THREE.Mesh(titleGeo, chromeMaterial);
+    titleMesh.position.set(titleX, titleY, 0);
     if (s < 1) titleMesh.scale.set(s, s, s);
     scene.add(titleMesh);
   });
@@ -106,6 +139,8 @@ import { setupLights } from '../scene/lights.js';
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    bgRenderer.setSize(window.innerWidth, window.innerHeight);
+    halftone.resize();
   });
 
   function transitionTo(url) {
@@ -127,9 +162,12 @@ import { setupLights } from '../scene/lights.js';
 
     if (titleMesh) {
       titleMesh.visible = false;
+      if (shadowMesh) shadowMesh.visible = false;
       cubeCamera.update(renderer, scene);
       titleMesh.visible = true;
+      if (shadowMesh) shadowMesh.visible = true;
       titleMesh.rotation.y = Math.sin(t * 0.25) * 0.06;
+      if (shadowMesh) shadowMesh.rotation.y = titleMesh.rotation.y;
     }
 
     starA.rotation.y =  t * 0.007;
@@ -143,6 +181,8 @@ import { setupLights } from '../scene/lights.js';
     twinkleStars(starB, t);
     twinkleStars(starC, t);
 
+    halftone.update(t);
+    bgRenderer.render(bgScene, bgCamera);
     renderer.render(scene, camera);
   })();
 })();

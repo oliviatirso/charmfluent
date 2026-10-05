@@ -68,8 +68,9 @@ body {
   position: fixed;
   inset: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: 20vh;
   z-index: 2;
 }
 
@@ -123,8 +124,8 @@ body {
   user-select: none;
   z-index: 4;
 }
-#arrow-left  { left: 8px; }
-#arrow-right { right: 8px; }
+#arrow-left  { left:  calc(50% - min(30vw, 390px)); }
+#arrow-right { right: calc(50% - min(30vw, 390px)); }
 .gallery-arrow:hover { color: #ff6ec7; transform: translateY(-50%) scale(1.1); }
 .gallery-arrow:active { transform: translateY(-50%) scale(0.95); }
 
@@ -163,7 +164,7 @@ body {
 #photo-counter {
   position: fixed;
   top: 24px;
-  right: 28px;
+  right: 62px;
   z-index: 10;
   font-family: 'Press Start 2P', monospace;
   font-size: 9px;
@@ -390,6 +391,8 @@ body {
 
 #file-input { display: none; }
 
+/* ── Light Mode ── */
+
 /* ── Mobile ── */
 @media (max-width: 767px) {
   #photo-wrap {
@@ -401,6 +404,8 @@ body {
     font-size: 44px;
     padding: 0 6px;
   }
+  #arrow-left  { left:  4px; }
+  #arrow-right { right: 4px; }
 
   .thumb {
     width: 40px;
@@ -423,12 +428,12 @@ body {
   #photo-counter {
     font-size: 7px;
     top: 16px;
-    right: 16px;
+    right: 10px;
   }
 
   .filter-pill {
-    font-size: 6px;
-    padding: 5px 9px;
+    font-size: 8px;
+    padding: 8px 14px;
   }
 
   #submit-btn {

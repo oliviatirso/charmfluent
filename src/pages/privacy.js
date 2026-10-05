@@ -4,19 +4,19 @@ import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { createStarfield, twinkleStars } from '../scene/starfield.js';
 import { setupLights } from '../scene/lights.js';
+import { createHalftoneBackground } from '../scene/halftoneBg.js';
+import { isMobile, pixelRatio } from '../utils/device.js';
 
 (function initScene() {
-  const isMobile = window.innerWidth < 768;
-
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: !isMobile, alpha: true, powerPreference: 'high-performance' });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(pixelRatio);
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.4;
   renderer.domElement.style.position = 'fixed';
   renderer.domElement.style.inset = '0';
-  renderer.domElement.style.zIndex = '6';
+  renderer.domElement.style.zIndex = '0';
   renderer.domElement.style.pointerEvents = 'none';
   document.body.prepend(renderer.domElement);
 
@@ -24,6 +24,10 @@ import { setupLights } from '../scene/lights.js';
   const camera = new THREE.PerspectiveCamera(isMobile ? 68 : 52, window.innerWidth / window.innerHeight, 0.1, 200);
   camera.position.set(0, 1.6, 7.2);
   camera.lookAt(0, isMobile ? -0.6 : 0.35, 0);
+
+  const halftone = createHalftoneBackground(renderer);
+  scene.add(halftone.mesh);
+  scene.background = null;
 
   setupLights(scene);
 
@@ -41,6 +45,7 @@ import { setupLights } from '../scene/lights.js';
   scene.add(rimPink);
 
   const { starA, starB, starC } = createStarfield(scene);
+
 
   const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(256, {
     format: THREE.RGBAFormat,
@@ -97,6 +102,7 @@ import { setupLights } from '../scene/lights.js';
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    halftone.resize();
   });
 
   function transitionTo(url) {
@@ -134,6 +140,7 @@ import { setupLights } from '../scene/lights.js';
     twinkleStars(starB, t);
     twinkleStars(starC, t);
 
+    halftone.update(t);
     renderer.render(scene, camera);
   })();
 })();

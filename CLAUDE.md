@@ -10,13 +10,11 @@ npm run build     # Production build → dist/
 npm run preview   # Preview production build locally
 ```
 
-No test runner is configured.
+Tests use **Vitest** (`vitest.config.js`). Run with `npm run test` (or `npx vitest`). Test files live in `tests/` — covers API routes (`tests/api/`) and build output (`tests/build.test.js`).
 
 ## Architecture
 
 This is a Three.js interactive landing page for Charmfluent (custom tooth gems & grillz brand), bundled with Vite. Multi-page app configured via `vite.config.js`.
-
-**⚠️ Build config gap:** `vite.config.js` only registers `shell` (index.html), `landing` (home.html), `toothGemz` (tooth-gemz.html), and `camera` (camera.html) as Rollup inputs. `pages/about.html` and `pages/prices.html` exist and are linked in-app but are **not** listed as build inputs — verify whether `npm run build` actually emits them before relying on a production build.
 
 **Entry flow:** `index.html` (shell) → loads `pages/home.html` in an iframe → `src/main.js` → `startLoader()` (first visit only) → `initScene()` (Three.js scene)
 
@@ -30,7 +28,7 @@ This is a Three.js interactive landing page for Charmfluent (custom tooth gems &
 - All pages expose a local `transitionTo(url)` helper that encapsulates this: `postMessage('cf:out')` + setTimeout navigate.
 - Back buttons (`#back-btn`) on all sub-pages use this helper and navigate to `/pages/home.html` within the iframe.
 
-**`src/scene/scene.js`** — core Three.js setup: renderer, camera, animation loop, mouse parallax tracking. The three starfield layers (`starA/B/C`) rotate at different speeds and respond to mouse position with layered parallax (starA most reactive, starC not at all). Also handles:
+**`src/scene/scene.js`** — core Three.js setup: renderer, camera, animation loop, mouse parallax tracking. Uses the halftone background (`halftoneBg.js`) as the animated background — `scene.background = null` and the halftone mesh draws at `renderOrder -1000`. Also handles:
 - Molar tooth GLB model (loaded via GLTFLoader, slow Y-axis rotation) plus a row of clickable icon GLB models — Instagram, TikTok, polaroid camera, kitty, dollar symbol — that fade in once all models finish loading
 - Raycaster click detection routes each model to a destination: tooth → external `https://venue.ink/@charmfluent`, Instagram model → external Instagram profile, TikTok model → external TikTok profile, polaroid camera model → `transitionTo('/pages/camera.html')`, kitty model → `transitionTo('/pages/about.html')`, dollar symbol model → `transitionTo('/pages/prices.html')`
 - **Note:** the tooth model no longer links to `/pages/tooth-gemz.html` (it opens the external venue.ink link instead). Nothing else in the app currently links to `pages/tooth-gemz.html` either — it's effectively orphaned; confirm with the project owner whether it's still needed
@@ -39,7 +37,7 @@ This is a Three.js interactive landing page for Charmfluent (custom tooth gems &
 - Sends `window.parent.postMessage('cf:ready', '*')` on the first animation frame (signals shell to reveal the page)
 
 **Mobile layout system (`src/scene/scene.js`):**
-- `isMobile = window.innerWidth < 768`. Mobile shows **two rows of 3** models; desktop shows one row of 6.
+- `isMobile` is imported from `src/utils/device.js` (breakpoint: `< 768px`). Mobile shows **two rows of 3** models; desktop shows one row of 6.
 - Per-breakpoint `cfg` object (keyed by `w = window.innerWidth`) controls `title`, `sub`, `label` font sizes, `toothScale`, and column `spacing`. Key breakpoints: `<415` (iPhone 16), `<480` (iPhone Pro Max).
 - **Title/subtitle auto-fit:** after creating the TextGeometry, both meshes are scaled down if their width exceeds 90% of the visible world width at Z=0, so they never clip the viewport edges on any screen size.
 - **Label auto-fit:** `makeLabel()` scales each label down if it exceeds `cfg.spacing * 0.88`, preventing long labels like "Instagram" from overlapping adjacent columns.
@@ -47,15 +45,17 @@ This is a Three.js interactive landing page for Charmfluent (custom tooth gems &
 - `labelY1 = FLOOR_Y - 0.38`, `labelY2 = FLOOR_Y_ROW2 - 0.62` — row 2 uses a larger offset to clear the polaroid camera model's geometry.
 - All icon models scale relative to `toothMaxDim` (derived from `cfg.toothScale`) so they appear visually consistent in size.
 
-**`src/scene/starfield.js`** — creates three `THREE.Points` layers with different density/size/opacity to simulate depth. Stars are randomly positioned in a spread volume behind the camera.
+**`src/scene/halftoneBg.js`** — animated full-screen GLSL halftone flow shader. Creates a `THREE.ShaderMaterial` on a pinned `PlaneGeometry(2,2)` (`renderOrder -1000`, `depthWrite/depthTest false`). The fragment shader mixes dark/red/pink fluid colors through a rotating flow field, then applies a halftone dot grid. Exports `createHalftoneBackground(renderer, opts)` returning `{ mesh, update(t), resize(), dispose() }`. Accepts optional `hue`, `saturation`, `brightness`, `speed`, and `highlight` color. Respects `prefers-reduced-motion`.
+
+**`src/scene/starfield.js`** — three `THREE.Points` layers (starA/B/C). Stars are set to `visible = false` in `createStarfield()` and are no longer revealed or animated — effectively disabled. The file is retained but the starfield is not active.
 
 **`src/scene/lights.js`** — three-point lighting: warm white key + purple rim + gold fill, matching the brand color palette.
+
+**`src/utils/device.js`** — single source of truth for device detection. Exports `isMobile` (`window.innerWidth < 768`) and `pixelRatio` (`Math.min(devicePixelRatio, isMobile ? 1.5 : 2)`). All page JS files and `scene.js` import from here — do not redeclare these locally. Change the breakpoint or pixel ratio cap here and it propagates everywhere.
 
 **`src/utils/loader.js`** — simulated progress bar that increments randomly every 110ms, fades out the `#loader` overlay when complete, then fires `onComplete` callback after 700ms fade. Only called on first visit (see loader skip above).
 
 **`src/style.css`** — all UI styles. Fixed-position overlays (brand header, hint, footer, vignette, loader, custom cursor) sit above the Three.js canvas (`z-index` layering: canvas at 0, overlays at 1–5, loader at 100, cursor at 9999). Color palette: deep navy `#060612` background, gold `#D4AF37` accents, pink `#ff6ec7` / `#e91e8c` highlights. Footer lower row uses `.footer-row` (flex, gap 16px) with `.footer-copy` on the copyright span so all three items — Privacy Policy, Terms & Conditions, copyright — have equal spacing.
-
-**`src/player/player.js` + `player.css`** — persistent music player widget (iPod-style) rendered in the shell `index.html`.
 
 **`src/player/cam-widget.js` + `cam-widget.css`** — persistent camera/photo widget (Sony DSC-style) rendered in the shell `index.html`. Preloads a hardcoded list of photos from `public/assets/photos/` (see `PRELOADED_PHOTOS` at the top of the file — update this list when adding/removing gallery photos) and auto-rotates every 3s. Clicking the photo navigates to `/pages/camera.html`.
 
@@ -66,21 +66,23 @@ All sub-pages live in `pages/`. Back buttons navigate within the iframe to `/pag
 **Back button style** — shared across all pages via per-page CSS: `position:fixed; top:16px; left:16px; font-family:'Press Start 2P'; font-size:8px; padding:14px 18px; min-height:44px; background:rgba(6,6,18,0.6); border:1px solid rgba(255,110,199,0.3); border-radius:20px`. Mobile override: `font-size:7px; top:14px; left:14px; padding:5px 10px; min-height:unset`.
 
 - `index.html` — persistent shell: music player + camera widget + iframe + `#page-transition` overlay
-- `pages/home.html` — landing page content loaded in the iframe (Three.js starfield scene). `#loader` starts `display:none` via inline style; a synchronous inline script removes that style on first visit only.
-- `pages/camera.html` — Gallery page with Three.js starfield background + chrome 3D "Gallery" title + Sony DSC camera UI
-  - `src/pages/camera.js` — Three.js scene (starfield + Gallery title) + photo gallery logic, including category filter pills (`.filter-pill`, filters `allPhotos` down to `visiblePhotos` by category, "all" shows everything) and a photo upload flow
+- `pages/home.html` — landing page content loaded in the iframe (Three.js halftone background scene). `#loader` starts `display:none` via inline style; a synchronous inline script removes that style on first visit only.
+- `pages/camera.html` — Gallery page with halftone background + chrome 3D "Gallery" title + Sony DSC camera UI
+  - `src/pages/camera.js` — Uses **dual-renderer** pattern: a `bgRenderer` (z-index 0) renders only the halftone background; the main renderer (z-index 4, `alpha:true`) renders the transparent chrome 3D title on top. Also handles photo gallery logic with category filter pills (`.filter-pill`, filters `allPhotos` down to `visiblePhotos` by category, "all" shows everything) and a photo upload flow.
   - `src/pages/camera.css` — page-specific styles
-- `pages/prices.html` — Pricing page, same starfield/chrome-3D-title treatment as other pages; reached via the dollar-symbol model on Home
-  - `src/pages/prices.js` — Three.js scene (starfield + lighting + title)
+- `pages/prices.html` — Pricing page, same halftone/chrome-3D-title treatment as other pages; reached via the dollar-symbol model on Home
+  - `src/pages/prices.js` — Uses **dual-renderer** pattern (same as camera.js). `bgRenderer` at z-0 for halftone, main renderer at z-4 for chrome title.
   - `src/pages/prices.css` — page-specific styles
-  - Not currently listed as a build input in `vite.config.js` — see the build config gap noted above
 - `pages/about.html` — Brand story page with scroll-based interaction; reached via the kitty model on Home
-  - `src/pages/about.js` — Three.js scene (starfield + lighting + title). Title uses auto-fit scaling: after `computeBoundingBox`, if the text width exceeds 90% of visible world width it is scaled down uniformly and re-centred.
+  - `src/pages/about.js` — Uses **dual-renderer** pattern (same as camera.js). Title uses auto-fit scaling: after `computeBoundingBox`, if the text width exceeds 90% of visible world width it is scaled down uniformly and re-centred.
   - `src/pages/about.css` — page-specific styles
-  - Not currently listed as a build input in `vite.config.js` — see the build config gap noted above
 - `pages/tooth-gemz.html` — Tooth Gemz product page. **Currently orphaned:** no in-app link points to it anymore (the tooth model click was repointed to an external URL) — still registered as a `vite.config.js` build input
   - `src/pages/tooth-gemz.js` — cursor + Three.js title setup
   - `src/pages/tooth-gemz.css` — page-specific styles
+- `pages/404.html` — Custom 404 error page
+- `pages/privacy.html` — Privacy Policy page
+- `pages/terms.html` — Terms & Conditions page
+- `pages/admin.html` — Admin panel (Supabase photo management). **To add new gallery photos:** log into the admin panel and upload via the upload form — photos are stored in Supabase Storage (`gallery` bucket) and registered in the `photos` table. Do NOT add photos by dropping files into `public/assets/photos/`; that directory is for legacy/static assets only and is not wired to the gallery page.
 
 ## Static Assets
 

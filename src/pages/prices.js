@@ -4,18 +4,19 @@ import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { createStarfield, twinkleStars } from '../scene/starfield.js';
 import { setupLights } from '../scene/lights.js';
+import { createHalftoneBackground } from '../scene/halftoneBg.js';
+import { isMobile, pixelRatio } from '../utils/device.js';
 
 (function initScene() {
-  const isMobile = window.innerWidth < 768;
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: !isMobile, alpha: true, powerPreference: 'high-performance' });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(pixelRatio);
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.4;
   renderer.domElement.style.position = 'fixed';
   renderer.domElement.style.inset = '0';
-  renderer.domElement.style.zIndex = '6';
+  renderer.domElement.style.zIndex = '4';
   renderer.domElement.style.pointerEvents = 'none';
   document.body.prepend(renderer.domElement);
 
@@ -23,6 +24,23 @@ import { setupLights } from '../scene/lights.js';
   const camera = new THREE.PerspectiveCamera(isMobile ? 68 : 52, window.innerWidth / window.innerHeight, 0.1, 200);
   camera.position.set(0, 1.6, 7.2);
   camera.lookAt(0, isMobile ? -0.9 : 0.35, 0);
+
+  scene.background = null;
+
+  // Second renderer at z-0 renders just the halftone; images (z-2) sit above it;
+  // this renderer (z-4, alpha:true) renders only the transparent title on top.
+  const bgRenderer = new THREE.WebGLRenderer({ antialias: false });
+  bgRenderer.setSize(window.innerWidth, window.innerHeight);
+  bgRenderer.setPixelRatio(pixelRatio);
+  bgRenderer.domElement.style.position = 'fixed';
+  bgRenderer.domElement.style.inset = '0';
+  bgRenderer.domElement.style.zIndex = '0';
+  bgRenderer.domElement.style.pointerEvents = 'none';
+  document.body.prepend(bgRenderer.domElement);
+  const bgScene = new THREE.Scene();
+  const bgCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const halftone = createHalftoneBackground(bgRenderer);
+  bgScene.add(halftone.mesh);
 
   setupLights(scene);
 
@@ -40,6 +58,7 @@ import { setupLights } from '../scene/lights.js';
   scene.add(titleSpot.target);
 
   const { starA, starB, starC } = createStarfield(scene);
+
 
   // CubeCamera for chrome reflections
   const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(512, {
@@ -61,6 +80,7 @@ import { setupLights } from '../scene/lights.js';
   });
 
   let titleMesh = null;
+  let shadowMesh = null;
 
   const ttfLoader = new TTFLoader();
   ttfLoader.load('/assets/fonts/UnifrakturMaguntia-Regular.ttf', (json) => {
@@ -77,8 +97,21 @@ import { setupLights } from '../scene/lights.js';
     });
     titleGeo.computeBoundingBox();
     const w = titleGeo.boundingBox.max.x - titleGeo.boundingBox.min.x;
+
+    const titleY = isMobile ? 2.4 : 2.7;
+    const shadowMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(0, 0, 0),
+      transparent: true,
+      opacity: 0.45,
+      roughness: 1,
+      metalness: 0,
+    });
+    shadowMesh = new THREE.Mesh(titleGeo, shadowMat);
+    shadowMesh.position.set(-w / 2 + 0.07, titleY - 0.1, -0.35);
+    scene.add(shadowMesh);
+
     titleMesh = new THREE.Mesh(titleGeo, chromeMaterial);
-    titleMesh.position.set(-w / 2, isMobile ? 2.3 : 2.85, 0);
+    titleMesh.position.set(-w / 2, titleY, 0);
     scene.add(titleMesh);
   });
 
@@ -97,6 +130,8 @@ import { setupLights } from '../scene/lights.js';
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    bgRenderer.setSize(window.innerWidth, window.innerHeight);
+    halftone.resize();
   });
 
   function transitionTo(url) {
@@ -128,9 +163,13 @@ import { setupLights } from '../scene/lights.js';
     twinkleStars(starC, t);
 
     if (titleMesh) titleMesh.visible = false;
+    if (shadowMesh) shadowMesh.visible = false;
     cubeCamera.update(renderer, scene);
     if (titleMesh) titleMesh.visible = true;
+    if (shadowMesh) shadowMesh.visible = true;
 
+    halftone.update(t);
+    bgRenderer.render(bgScene, bgCamera);
     renderer.render(scene, camera);
   })();
 })();

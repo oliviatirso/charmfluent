@@ -4,7 +4,7 @@ body {
   overflow-y: auto !important;
 }
 
-/* Gradient mask — images scroll behind this, title stays visible */
+/* Gradient mask — images scroll behind this so the 3D title stays on top */
 body::before {
   content: '';
   position: fixed;
@@ -12,11 +12,10 @@ body::before {
   left: 0;
   right: 0;
   height: 220px;
-  background: linear-gradient(to bottom, #060612 45%, transparent 100%);
-  z-index: 5;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.82) 35%, transparent 100%);
+  z-index: 3;
   pointer-events: none;
 }
-
 
 #back-btn {
   position: fixed;
@@ -45,11 +44,11 @@ body::before {
   flex-direction: column;
   align-items: center;
   z-index: 2;
-  padding: 80px 60px 80px;
+  padding: 20px 60px 80px;
 }
 
 #prices-header {
-  height: 200px;
+  height: 130px;
   visibility: hidden;
 }
 
@@ -60,7 +59,7 @@ body::before {
   justify-content: center;
   gap: 32px;
   width: 100%;
-  margin-top: 32px;
+  margin-top: 8px;
 }
 
 .price-card {
@@ -86,6 +85,8 @@ body::before {
   z-index: 20;
 }
 
+/* ── Light Mode ── */
+
 /* ── Mobile ── */
 @media (max-width: 767px) {
   #back-btn {
@@ -97,18 +98,18 @@ body::before {
   }
 
   #prices-content {
-    padding: 60px 20px 80px;
+    padding: 10px 20px 80px;
   }
 
   #prices-header {
-    height: 80px;
+    height: 130px;
   }
 
   #prices-images {
     flex-direction: column;
     align-items: center;
-  gap: 20px;
-    margin-top: 16px;
+    gap: 20px;
+    margin-top: 8px;
   }
 
   .price-card {

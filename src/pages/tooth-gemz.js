@@ -1,5 +1,6 @@
 import '../style.css';
 import * as THREE from 'three';
+import { isMobile, pixelRatio } from '../utils/device.js';
 import { TTFLoader } from 'three/examples/jsm/loaders/TTFLoader.js';
 import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
@@ -9,7 +10,7 @@ import { setupLights } from '../scene/lights.js';
 // ── Background Scene (starfield) ──
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(pixelRatio);
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.4;

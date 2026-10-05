@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Charmfluent — Grillz & Tooth Gemz</title>
-  <meta name="description" content="Grillz & Tooth Gemz">
+  <title>Charmfluent — Custom Grillz & Tooth Gems</title>
+  <meta name="description" content="Charmfluent creates custom grillz and tooth gems handcrafted to fit you. Stand out with a smile that turns heads.">
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Charmfluent">
-  <meta property="og:description" content="Grillz & Tooth Gemz">
+  <meta property="og:title" content="Charmfluent — Custom Grillz & Tooth Gems">
+  <meta property="og:description" content="Charmfluent creates custom grillz and tooth gems handcrafted to fit you. Stand out with a smile that turns heads.">
   <meta property="og:image" content="/assets/og-image.png">
 
   <!-- Twitter / X -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Charmfluent">
-  <meta name="twitter:description" content="Grillz & Tooth Gemz">
+  <meta name="twitter:title" content="Charmfluent — Custom Grillz & Tooth Gems">
+  <meta name="twitter:description" content="Charmfluent creates custom grillz and tooth gems handcrafted to fit you. Stand out with a smile that turns heads.">
   <meta name="twitter:image" content="/assets/og-image.png">
 
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -90,7 +90,7 @@
       transition: top 3s ease-in-out, left 3s ease-in-out;
     }
     @media (min-width: 769px) {
-      #petz { top: 85%; left: 88%; }
+      #petz { top: 85%; left: 88%; width: 96px; height: 96px; }
     }
 
     /* ── dracula cat ── */
@@ -99,9 +99,18 @@
       background-size: 384px 64px;
       animation: catAnim 0.7s steps(6) infinite;
     }
+    @media (min-width: 769px) {
+      #petz { background-size: 576px 96px; }
+    }
     @keyframes catAnim {
       from { background-position: 0 0; }
       to   { background-position: -384px 0; }
+    }
+    @media (min-width: 769px) {
+      @keyframes catAnim {
+        from { background-position: 0 0; }
+        to   { background-position: -576px 0; }
+      }
     }
 
     /* ── box animation ── */
@@ -109,13 +118,25 @@
       from { background-position: 0 0; }
       to   { background-position: -256px 0; }
     }
+    @media (min-width: 769px) {
+      @keyframes catBox {
+        from { background-position: 0 0; }
+        to   { background-position: -384px 0; }
+      }
+    }
     #petz.in-box {
       background-image: url('/assets/models/CatPackFree/Box3.png');
       background-size: 256px 64px;
       animation: catBox 0.5s steps(4) infinite;
     }
+    @media (min-width: 769px) {
+      #petz.in-box { background-size: 384px 96px; }
+    }
 
     /* ── speech bubble (main cat only) ── */
+    @media (min-width: 769px) {
+      .petz-bubble { bottom: 104px; }
+    }
     .petz-bubble {
       position: absolute;
       bottom: 72px; left: 50%;
@@ -196,6 +217,16 @@
       } catch(e) {}
     });
 
+    // ── clamp helper — keeps cat fully inside the viewport ──
+    function clampPos(left, top) {
+      const w = petz.offsetWidth;
+      const h = petz.offsetHeight;
+      return {
+        left: Math.max(0, Math.min(left, window.innerWidth  - w)),
+        top:  Math.max(0, Math.min(top,  window.innerHeight - h))
+      };
+    }
+
     // ── drag + tap ──
     petz.addEventListener('pointerdown', (e) => {
       e.preventDefault();
@@ -215,8 +246,9 @@
         const dy = ev.clientY - startY;
         if (dx * dx + dy * dy > 25) moved = true;
         if (!moved) return;
-        petz.style.left = (origLeft + dx) + 'px';
-        petz.style.top  = (origTop  + dy) + 'px';
+        const c = clampPos(origLeft + dx, origTop + dy);
+        petz.style.left = c.left + 'px';
+        petz.style.top  = c.top  + 'px';
       }
 
       function onUp() {
@@ -226,8 +258,9 @@
 
         // Convert final px position back to % so wander transitions still work
         const r = petz.getBoundingClientRect();
-        petz.style.left = (r.left / window.innerWidth  * 100).toFixed(2) + '%';
-        petz.style.top  = (r.top  / window.innerHeight * 100).toFixed(2) + '%';
+        const c = clampPos(r.left, r.top);
+        petz.style.left = (c.left / window.innerWidth  * 100).toFixed(2) + '%';
+        petz.style.top  = (c.top  / window.innerHeight * 100).toFixed(2) + '%';
         requestAnimationFrame(() => { petz.style.transition = ''; });
 
         if (!moved && !petz.classList.contains('in-box')) {
@@ -243,8 +276,12 @@
     // ── lazy wander every 10s ──
     setInterval(() => {
       if (!petz.classList.contains('in-box')) {
-        petz.style.top  = (85 + Math.random() * 10) + '%';
-        petz.style.left = (40 + Math.random() * 40) + '%';
+        const maxL = window.innerWidth  - petz.offsetWidth;
+        const maxT = window.innerHeight - petz.offsetHeight;
+        const top  = maxT * (0.75 + Math.random() * 0.2);
+        const left = maxL * (0.35 + Math.random() * 0.5);
+        petz.style.top  = (top  / window.innerHeight * 100).toFixed(2) + '%';
+        petz.style.left = (left / window.innerWidth  * 100).toFixed(2) + '%';
       }
     }, 10000);
 
@@ -355,6 +392,11 @@
       document.getElementById('cookie-accept').addEventListener('click', () => dismiss('accepted'));
       document.getElementById('cookie-decline').addEventListener('click', () => dismiss('declined'));
     })();
+  </script>
+
+  <script type="module">
+    import { inject } from '@vercel/analytics';
+    inject();
   </script>
 
   <noscript>

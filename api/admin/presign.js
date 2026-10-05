@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { rateLimit, trackAuthFailure } from '../_rateLimit.js';
 
 function verifyAdmin(req) {
   const auth = req.headers['authorization'] || '';
@@ -7,7 +8,18 @@ function verifyAdmin(req) {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
-  if (!verifyAdmin(req)) return res.status(401).json({ error: 'Unauthorized' });
+
+  const rl = rateLimit(req, { name: 'admin', max: 20, windowMs: 60_000 });
+  if (rl.limited) {
+    res.setHeader('Retry-After', String(rl.retryAfter));
+    return res.status(429).json({ error: 'Too many requests' });
+  }
+
+  if (!verifyAdmin(req)) {
+    const lockedOut = trackAuthFailure(req);
+    if (lockedOut) return res.status(429).json({ error: 'Too many failed attempts. Try again later.' });
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 
   const { filename, category } = req.body || {};
   if (!filename || !['grills', 'gems'].includes(category)) {

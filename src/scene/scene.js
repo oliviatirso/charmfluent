@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { track } from '@vercel/analytics';
 import { TTFLoader } from 'three/examples/jsm/loaders/TTFLoader.js';
 import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
@@ -6,9 +7,10 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { createStarfield, twinkleStars } from './starfield.js';
 import { setupLights } from './lights.js';
+import { createHalftoneBackground } from './halftoneBg.js';
+import { isMobile, pixelRatio } from '../utils/device.js';
 
 export function initScene() {
-  const isMobile = window.innerWidth < 768;
   // Per-device layout config — covers common phone widths up to tablet/desktop
   const w = window.innerWidth;
   const cfg = w < 320  ? { title: 0.34, sub: 0.11, label: 0.09, labelDepth: 0.014, toothScale: 0.22, spacing: 0.78 } // very small (Galaxy Fold outer, etc.)
@@ -17,12 +19,12 @@ export function initScene() {
             : w < 415  ? { title: 0.62, sub: 0.22, label: 0.24, labelDepth: 0.020, toothScale: 0.40, spacing: 1.38 } // iPhone 16 (393px), Pixel 7 (412px)
             : w < 480  ? { title: 0.66, sub: 0.23, label: 0.25, labelDepth: 0.020, toothScale: 0.42, spacing: 1.45 } // iPhone 16 Pro Max (430px), large Android
             : w < 768  ? { title: 0.60, sub: 0.20, label: 0.15, labelDepth: 0.020, toothScale: 0.32, spacing: 1.20 } // small tablets / landscape phones
-            :             { title: 0.78, sub: 0.22, label: 0.15, labelDepth: 0.020, toothScale: 0.22, spacing: 1.20 }; // desktop / tablet landscape
+            :             { title: 0.78, sub: 0.28, label: 0.20, labelDepth: 0.020, toothScale: 0.32, spacing: 1.20 }; // desktop / tablet landscape
 
   // ── Renderer ──
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: !isMobile, alpha: true, powerPreference: 'high-performance' });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(pixelRatio);
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.4;
@@ -36,6 +38,11 @@ export function initScene() {
   );
   camera.position.set(0, 1.6, 7.2);
   camera.lookAt(0, isMobile ? -0.9 : 0.35, 0);
+
+  // ── Halftone background ──
+  const halftone = createHalftoneBackground(renderer);
+  scene.add(halftone.mesh);
+  scene.background = null;
 
   // ── Lights (call before CubeCamera so reflections pick them up) ──
   setupLights(scene);
@@ -61,26 +68,27 @@ export function initScene() {
   // Title "Charmfluent"
   const titleSpot = new THREE.SpotLight(0xffffff, 10, 20, Math.PI / 8, 0.35, 1.5);
   titleSpot.position.set(0, 7, 5);
-  titleSpot.target.position.set(0, 2.85, 0);
+  titleSpot.target.position.set(0, 2.65, 0);
   scene.add(titleSpot);
   scene.add(titleSpot.target);
 
   // Subtitle "Custom Grillz & Tooth Charms"
   const subSpot = new THREE.SpotLight(0xff88cc, 2.5, 18, Math.PI / 7, 0.45, 1.5);
   subSpot.position.set(0, 6, 5);
-  subSpot.target.position.set(0, 2.29, 0);
+  subSpot.target.position.set(0, 2.1, 0);
   scene.add(subSpot);
   scene.add(subSpot.target);
 
   // "Tooth Gemz" label under the tooth
   const toothLabelSpot = new THREE.SpotLight(0xffd700, 3, 12, Math.PI / 6, 0.4, 1.5);
-  toothLabelSpot.position.set(-2.5, 4, 3);
-  toothLabelSpot.target.position.set(-2.5, 1.32, 0.14);
+  toothLabelSpot.position.set(-4.0, 4, 3);
+  toothLabelSpot.target.position.set(-4.0, 1.32, 0.14);
   scene.add(toothLabelSpot);
   scene.add(toothLabelSpot.target);
 
   // ── Starfield ──
   const { starA, starB, starC } = createStarfield(scene);
+
 
   // ── Models group — rotate all icons together ──
   const modelsGroup = new THREE.Group();
@@ -90,7 +98,7 @@ export function initScene() {
   // This renders the scene into a cube texture so the text
   // reflects its surroundings in real time — that's what gives
   // the chrome/metallic mirror look.
-  const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(isMobile ? 256 : 512, {
+  const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(isMobile ? 128 : 512, {
     format: THREE.RGBAFormat,
     generateMipmaps: true,
     minFilter: THREE.LinearMipmapLinearFilter,
@@ -119,7 +127,7 @@ export function initScene() {
     envMapIntensity: 1.6,
   });
 
-  // Flat label material — consistent pink across all tab labels regardless of lighting
+  // Flat label material — pink
   const labelMaterial = new THREE.MeshBasicMaterial({
     color: new THREE.Color(1.0, 0.55, 0.75),
   });
@@ -131,6 +139,17 @@ export function initScene() {
   // Track meshes so we can hide them during cube render
   let textMesh = null;
   let subMesh  = null;
+  let titleShadowMesh = null;
+  let subShadowMesh   = null;
+
+  const textShadowMat = new THREE.MeshBasicMaterial({
+    color: 0x000000,
+    transparent: true,
+    opacity: 0.82,
+    polygonOffset: true,
+    polygonOffsetFactor: 1,
+    polygonOffsetUnits: 1,
+  });
 
   // ── Font Loading ──
   // SETUP INSTRUCTIONS:
@@ -157,14 +176,14 @@ export function initScene() {
     const labelDepth = cfg.labelDepth;
 
     // Desktop icon x positions (single row, 6 items centered with 1.0 spacing)
-    const deskX = [-2.5, -1.5, -0.5, 0.5, 1.5, 2.5];
+    const deskX = [-4.0, -2.4, -0.8, 0.8, 2.4, 4.0];
     // Mobile icon x positions (row 1: tooth/insta/tiktok, row 2: polaroid/kitty/dollar)
     const mobRow1X = [-cfg.spacing, 0, cfg.spacing]; // tooth, insta, tiktok
     const mobRow2X = [-cfg.spacing, 0, cfg.spacing]; // polaroid, kitty, dollar
 
     const iconY1 = isMobile ? 1.9  : 1.78;  // row 1 (or only row on desktop)
     const iconY2 = 0.75;                      // row 2 (mobile only)
-    const labelY1 = isMobile ? FLOOR_Y - 0.38 : 1.2;
+    const labelY1 = FLOOR_Y - 0.38;
     const labelY2 = isMobile ? FLOOR_Y_ROW2 - 0.62 : 0.1;
 
     // ── Main Title: "Charmfluent" ──
@@ -189,13 +208,17 @@ export function initScene() {
     const maxTextW = visibleW * 0.90;
 
     textMesh = new THREE.Mesh(titleGeo, chromeMaterial);
+    titleShadowMesh = new THREE.Mesh(titleGeo, textShadowMat);
     if (titleWidth > maxTextW) {
       const s = maxTextW / titleWidth;
       textMesh.scale.set(s, s, s);
-      textMesh.position.set(-(maxTextW / 2), isMobile ? 2.7 : 2.85, 0);
+      textMesh.position.set(-(maxTextW / 2), isMobile ? 2.5 : 2.65, 0);
     } else {
-      textMesh.position.set(centerOffset, isMobile ? 2.7 : 2.85, 0);
+      textMesh.position.set(centerOffset, isMobile ? 2.5 : 2.65, 0);
     }
+    titleShadowMesh.scale.copy(textMesh.scale);
+    titleShadowMesh.position.set(textMesh.position.x + 0.04, textMesh.position.y - 0.04, textMesh.position.z);
+    textGroup.add(titleShadowMesh); // behind main mesh
     textGroup.add(textMesh);
 
     // ── Subtitle ──
@@ -215,13 +238,17 @@ export function initScene() {
     const subOffset = -0.5 * subWidth;
 
     subMesh = new THREE.Mesh(subGeo, subChromeMaterial);
+    subShadowMesh = new THREE.Mesh(subGeo, textShadowMat);
     if (subWidth > maxTextW) {
       const s = maxTextW / subWidth;
       subMesh.scale.set(s, s, s);
-      subMesh.position.set(-(maxTextW / 2), isMobile ? 2.23 : 2.29, 0);
+      subMesh.position.set(-(maxTextW / 2), isMobile ? 2.03 : 2.1, 0);
     } else {
-      subMesh.position.set(subOffset, isMobile ? 2.23 : 2.29, 0);
+      subMesh.position.set(subOffset, isMobile ? 2.03 : 2.1, 0);
     }
+    subShadowMesh.scale.copy(subMesh.scale);
+    subShadowMesh.position.set(subMesh.position.x + 0.03, subMesh.position.y - 0.03, subMesh.position.z);
+    textGroup.add(subShadowMesh); // behind main mesh
     textGroup.add(subMesh);
 
     // Helper to make a label mesh — auto-scales to fit within maxW
@@ -240,6 +267,7 @@ export function initScene() {
       geo.computeBoundingBox();
       const w = geo.boundingBox.max.x - geo.boundingBox.min.x;
       const mesh = new THREE.Mesh(geo, labelMaterial);
+      const shadow = new THREE.Mesh(geo, textShadowMat);
       if (w > labelMaxW) {
         const s = labelMaxW / w;
         mesh.scale.set(s, s, s);
@@ -247,6 +275,9 @@ export function initScene() {
       } else {
         mesh.position.set(xAnchor - w / 2, yPos, zPos);
       }
+      shadow.scale.copy(mesh.scale);
+      shadow.position.set(mesh.position.x + 0.02, mesh.position.y - 0.02, mesh.position.z);
+      scene.add(shadow);
       scene.add(mesh);
     }
 
@@ -295,7 +326,7 @@ export function initScene() {
   const gltfLoader = new GLTFLoader();
   gltfLoader.setMeshoptDecoder(MeshoptDecoder);
   // Floor Y: the Y where all model bottoms will sit
-  const FLOOR_Y      = isMobile ? 0.7 : 1.5;    // row 1 (desktop uses this for all)
+  const FLOOR_Y      = isMobile ? 0.7 : 0.65;    // row 1 (desktop uses this for all)
   const FLOOR_Y_ROW2 = isMobile ? -1.1 : 0.45;   // mobile row 2 only
 
 gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
@@ -309,7 +340,7 @@ gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
     toothModel.scale.set(toothScale, toothScale, toothScale);
     // Bottom-align: place so model bottom sits at FLOOR_Y
     const toothBottomY = FLOOR_Y - rawBox.min.y * toothScale;
-    toothModel.position.set(isMobile ? -cfg.spacing : -2.5, toothBottomY, 0.50);
+    toothModel.position.set(isMobile ? -cfg.spacing : -4.0, toothBottomY, 0.50);
     toothModel.visible = false;
     modelsGroup.add(toothModel);
     toothReady = true;
@@ -344,7 +375,7 @@ gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
     instaScene.position.sub(center);
     instaHalfH = centerBox.getSize(new THREE.Vector3()).y / 2;
     instaModel.add(instaScene);
-    instaModel.position.set(isMobile ? 0 : -1.5, 0, 0.50);
+    instaModel.position.set(isMobile ? 0 : -2.4, 0, 0.50);
     instaModel.visible = false;
     modelsGroup.add(instaModel);
     if (toothMaxDim !== null) matchInstaScale();
@@ -372,7 +403,7 @@ gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
     tiktokRawMaxDim = Math.max(tiktokSize.x, tiktokSize.y, tiktokSize.z) || 1;
     tiktokHalfH = tiktokSize.y / 2;
     tiktokModel.add(tiktokScene);
-    tiktokModel.position.set(isMobile ? cfg.spacing : -0.5, 0, 0.50);
+    tiktokModel.position.set(isMobile ? cfg.spacing : -0.8, 0, 0.50);
     tiktokModel.visible = false;
     modelsGroup.add(tiktokModel);
     if (toothMaxDim !== null) matchTiktokScale();
@@ -401,7 +432,7 @@ gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
     polaroidRawMaxDim = Math.max(polaroidSize.x, polaroidSize.y, polaroidSize.z) || 1;
     polaroidHalfH = polaroidSize.y / 2;
     polaroidModel.add(polaroidScene);
-    polaroidModel.position.set(isMobile ? -cfg.spacing : 0.5, 0, 0.50);
+    polaroidModel.position.set(isMobile ? -cfg.spacing : 0.8, 0, 0.50);
     polaroidModel.visible = false;
     modelsGroup.add(polaroidModel);
     if (toothMaxDim !== null) matchPolaroidScale();
@@ -430,7 +461,7 @@ gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
     kittyRawMaxDim = Math.max(kittySize.x, kittySize.y, kittySize.z) || 1;
     kittyHalfH = kittySize.y / 2;
     kittyModel.add(kittyScene);
-    kittyModel.position.set(isMobile ? 0 : 1.5, 0, 0.50);
+    kittyModel.position.set(isMobile ? 0 : 2.4, 0, 0.50);
     kittyModel.visible = false;
     modelsGroup.add(kittyModel);
     if (toothMaxDim !== null) matchKittyScale();
@@ -460,7 +491,7 @@ gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
     dollarRawMaxDim = Math.max(dollarSize.x, dollarSize.y, dollarSize.z) || 1;
     dollarHalfH = dollarSize.y / 2;
     dollarModel.add(dollarScene);
-    dollarModel.position.set(isMobile ? cfg.spacing : 2.5, 0, 0.50);
+    dollarModel.position.set(isMobile ? cfg.spacing : 4.0, 0, 0.50);
     dollarModel.visible = false;
     modelsGroup.add(dollarModel);
     if (toothMaxDim !== null) matchDollarScale();
@@ -500,27 +531,27 @@ gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
     raycaster.setFromCamera(mouse, camera);
     if (toothModel) {
       const hits = raycaster.intersectObject(toothModel, true);
-      if (hits.length > 0) { window.open('https://venue.ink/@charmfluent', '_blank'); return; }
+      if (hits.length > 0) { track('model_click', { model: 'tooth' }); window.open('https://venue.ink/@charmfluent', '_blank'); return; }
     }
     if (instaModel) {
       const hits = raycaster.intersectObject(instaModel, true);
-      if (hits.length > 0) { window.open('https://www.instagram.com/charmfluent', '_blank'); return; }
+      if (hits.length > 0) { track('model_click', { model: 'instagram' }); window.open('https://www.instagram.com/charmfluent', '_blank'); return; }
     }
     if (tiktokModel) {
       const hits = raycaster.intersectObject(tiktokModel, true);
-      if (hits.length > 0) { window.open('https://www.tiktok.com/@charmfluent', '_blank'); return; }
+      if (hits.length > 0) { track('model_click', { model: 'tiktok' }); window.open('https://www.tiktok.com/@charmfluent', '_blank'); return; }
     }
     if (polaroidModel) {
       const hits = raycaster.intersectObject(polaroidModel, true);
-      if (hits.length > 0) { transitionTo('/pages/camera.html'); return; }
+      if (hits.length > 0) { track('model_click', { model: 'gallery' }); transitionTo('/pages/camera.html'); return; }
     }
     if (kittyModel) {
       const hits = raycaster.intersectObject(kittyModel, true);
-      if (hits.length > 0) { transitionTo('/pages/about.html'); return; }
+      if (hits.length > 0) { track('model_click', { model: 'about' }); transitionTo('/pages/about.html'); return; }
     }
     if (dollarModel) {
       const hits = raycaster.intersectObject(dollarModel, true);
-      if (hits.length > 0) { transitionTo('/pages/prices.html'); return; }
+      if (hits.length > 0) { track('model_click', { model: 'prices' }); transitionTo('/pages/prices.html'); return; }
     }
   }
 
@@ -557,6 +588,7 @@ gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    halftone.resize();
   });
 
   // ── Animation Loop ──
@@ -580,13 +612,17 @@ gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
     // ── CubeCamera update (the key to chrome reflections) ──
     // On mobile, only update every 3rd frame to save GPU time
     if (!isMobile || frameCount % 3 === 0) {
-      if (textMesh) textMesh.visible = false;
-      if (subMesh)  subMesh.visible  = false;
+      if (textMesh)        textMesh.visible        = false;
+      if (subMesh)         subMesh.visible         = false;
+      if (titleShadowMesh) titleShadowMesh.visible = false;
+      if (subShadowMesh)   subShadowMesh.visible   = false;
 
       cubeCamera.update(renderer, scene);
 
-      if (textMesh) textMesh.visible = true;
-      if (subMesh)  subMesh.visible  = true;
+      if (textMesh)        textMesh.visible        = true;
+      if (subMesh)         subMesh.visible         = true;
+      if (titleShadowMesh) titleShadowMesh.visible = true;
+      if (subShadowMesh)   subShadowMesh.visible   = true;
     }
 
     // Tooth rotation
@@ -612,6 +648,7 @@ gltfLoader.load('/assets/models/molar_tooth.glb', (gltf) => {
     twinkleStars(starB, t);
     twinkleStars(starC, t);
 
+    halftone.update(t);
     renderer.render(scene, camera);
   })();
 }

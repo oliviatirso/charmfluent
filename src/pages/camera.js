@@ -4,20 +4,21 @@ import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { createStarfield, twinkleStars } from '../scene/starfield.js';
 import { setupLights } from '../scene/lights.js';
+import { createHalftoneBackground } from '../scene/halftoneBg.js';
+import { isMobile, pixelRatio } from '../utils/device.js';
 
 // ── Background Scene (starfield + 3D "Gallery" title) ──
 (function initScene() {
-  const isMobile = window.innerWidth < 768;
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: !isMobile, alpha: true, powerPreference: 'high-performance' });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(pixelRatio);
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.4;
   renderer.domElement.style.position = 'fixed';
   renderer.domElement.style.inset = '0';
-  renderer.domElement.style.zIndex = '0';
+  renderer.domElement.style.zIndex = '4';
   renderer.domElement.style.pointerEvents = 'none';
   document.body.prepend(renderer.domElement);
 
@@ -25,6 +26,21 @@ import { setupLights } from '../scene/lights.js';
   const camera = new THREE.PerspectiveCamera(isMobile ? 68 : 52, window.innerWidth / window.innerHeight, 0.1, 200);
   camera.position.set(0, 1.6, 7.2);
   camera.lookAt(0, isMobile ? -0.9 : 0.35, 0);
+
+  scene.background = null;
+
+  const bgRenderer = new THREE.WebGLRenderer({ antialias: false });
+  bgRenderer.setSize(window.innerWidth, window.innerHeight);
+  bgRenderer.setPixelRatio(pixelRatio);
+  bgRenderer.domElement.style.position = 'fixed';
+  bgRenderer.domElement.style.inset = '0';
+  bgRenderer.domElement.style.zIndex = '0';
+  bgRenderer.domElement.style.pointerEvents = 'none';
+  document.body.prepend(bgRenderer.domElement);
+  const bgScene = new THREE.Scene();
+  const bgCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const halftone = createHalftoneBackground(bgRenderer);
+  bgScene.add(halftone.mesh);
 
   setupLights(scene);
 
@@ -49,6 +65,7 @@ import { setupLights } from '../scene/lights.js';
 
   // Starfield
   const { starA, starB, starC } = createStarfield(scene);
+
 
   // CubeCamera for chrome reflections
   const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(512, {
@@ -76,18 +93,31 @@ import { setupLights } from '../scene/lights.js';
     const font = new Font(json);
     const titleGeo = new TextGeometry('Gallery', {
       font,
-      size: isMobile ? 0.68 : 1.02,
-      depth: isMobile ? 0.13 : 0.20,
+      size: isMobile ? 0.62 : 0.72,
+      depth: isMobile ? 0.12 : 0.14,
       curveSegments: 12,
       bevelEnabled: true,
-      bevelThickness: isMobile ? 0.026 : 0.038,
-      bevelSize: isMobile ? 0.018 : 0.028,
+      bevelThickness: isMobile ? 0.022 : 0.027,
+      bevelSize: isMobile ? 0.016 : 0.020,
       bevelSegments: 8,
     });
     titleGeo.computeBoundingBox();
     const w = titleGeo.boundingBox.max.x - titleGeo.boundingBox.min.x;
+
+    const shadowMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(0, 0, 0),
+      transparent: true,
+      opacity: 0.45,
+      roughness: 1,
+      metalness: 0,
+    });
+    const shadowMesh = new THREE.Mesh(titleGeo, shadowMat);
+    const titleY = isMobile ? 2.4 : 2.7;
+    shadowMesh.position.set(-w / 2 + 0.07, titleY - 0.1, -0.35);
+    scene.add(shadowMesh);
+
     titleMesh = new THREE.Mesh(titleGeo, chromeMaterial);
-    titleMesh.position.set(-w / 2, isMobile ? 2.3 : 2.55, 0);
+    titleMesh.position.set(-w / 2, titleY, 0);
     scene.add(titleMesh);
   });
 
@@ -137,6 +167,8 @@ import { setupLights } from '../scene/lights.js';
     cubeCamera.update(renderer, scene);
     if (titleMesh) titleMesh.visible = true;
 
+    halftone.update(t);
+    bgRenderer.render(bgScene, bgCamera);
     renderer.render(scene, camera);
   })();
 
@@ -144,6 +176,8 @@ import { setupLights } from '../scene/lights.js';
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    bgRenderer.setSize(window.innerWidth, window.innerHeight);
+    halftone.resize();
   });
 })();
 

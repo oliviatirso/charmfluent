@@ -1,7 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
+import { rateLimit } from './_rateLimit.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end();
+
+  const rl = rateLimit(req, { name: 'photos-public', max: 60, windowMs: 60_000 });
+  if (rl.limited) {
+    res.setHeader('Retry-After', String(rl.retryAfter));
+    return res.status(429).json({ error: 'Too many requests' });
+  }
 
   const supabase = createClient(
     process.env.SUPABASE_URL,
